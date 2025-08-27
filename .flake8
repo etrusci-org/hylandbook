@@ -1,9 +1,9 @@
 [flake8]
 exclude = .build/, .pyvenv/, __pycache__/, 0000/, hb_data/, dist/
 
-extend-ignore = E227, E302, E303, E501
-; E128 continuation line under-indented for visual indent
+extend-ignore = E227, E302, E305, E303, E501
 ; E227 missing whitespace around bitwise or shift operator
 ; E302 expected 2 blank lines, found 4
+; E305 expected 2 blank lines after class or function definition, found 4
 ; E303 too many blank lines
 ; E501 line too long

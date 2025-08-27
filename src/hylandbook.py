@@ -1,9 +1,8 @@
 '''
-DEV BRAIN
+HYLANDBOOK
 
-- use only python std lib
-- remember that some data is not available until we left the prologue
-- data parsing must handle suddenly missing variables gracefully (e.g. after a game update that changed save data struct)
+Last tested on game version 0.3.6f6
+Try --help
 '''
 
 import argparse
@@ -19,36 +18,51 @@ from pathlib import Path
 
 
 
-# CONFIGURATION
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# SETUP
+# ==================================================================================================
 
-BANNER: str = '-=[ H Y L A N D B O O K ]=-'
-# LAST_COMPAT_VERSION: str = '0.3.6f6'
+BANNER: str = ''' _______ ___ ___ _____   _______ _______ _____  ______ _______ _______ __  __
+|   |   |   |   |     |_|   _   |    |  |     \\|   __ \\       |       |  |/  |
+|       |\\     /|       |       |       |  --  |   __ <   -   |   -   |     <
+|___|___| |___| |_______|___|___|__|____|_____/|______/_______|_______|__|\\__|'''
 DEFAULT_DATA_DIR: Path = Path.cwd() / 'hb_data'
-CHECK_INTERVAL: int = 10
-SD_THROTTLE: float = 0
+DEFAULT_CHECK_INTERVAL: int = 60
+MIN_CHECK_INTERVAL: int = 20
+SD_FILE_READ_THROTTLE: float = 0
 ARGPARSER_CONF: dict = {
     'init': {
-        'prog': 'hylandbook',
-        'description': 'Log your Schedule I progress.',
+        'prog': "hylandbook",
+        'description': "Log your Schedule I progress. "
+                       "savegame path is required, options are optional and will use their defaults if not set by you. "
+                       "data directory must not exist but you will be asked for confirmation before it gets created automatically.",
+        'epilog': "cool links: <https://scheduleonegame.com> <https://github.com/etrusci-org/hylandbook>"
     },
     'args': [
         {
             'name_or_flags': ['save_dir'],
             'conf': {
-                'metavar': 'SAVEGAME_DIR',
+                'metavar': 'SAVEGAME_PATH',
                 'type': str,
                 'default': None,
-                'help': 'path to a Schedule I `SaveGame_*` directory',
+                'help': "path to a Schedule I 'SaveGame_*' directory, enclose it in quotes if it contains spaces, e.g. \"C:\\path to\\SaveGame_1\""
             },
         },
         {
             'name_or_flags': ['-d', '--data-dir'],
             'conf': {
-                'metavar': 'PATH',
+                'metavar': 'DATA_PATH',
                 'type': str,
                 'default': DEFAULT_DATA_DIR,
-                'help': f'path to directory where hylandbook will store its data - default: {DEFAULT_DATA_DIR}',
+                'help': f"path to directory where the logged data will be stored, default: {DEFAULT_DATA_DIR}",
+            },
+        },
+        {
+            'name_or_flags': ['-i', '--check-interval'],
+            'conf': {
+                'metavar': 'SECONDS',
+                'type': int,
+                'default': DEFAULT_CHECK_INTERVAL,
+                'help': f"how frequently to check the save data for changes, in seconds, default: {DEFAULT_CHECK_INTERVAL}, minimum: {MIN_CHECK_INTERVAL}",
             },
         },
     ],
@@ -95,7 +109,7 @@ DB_SCHEMA: str = '''
 
 
 # LIB
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ==================================================================================================
 
 def clear_display() -> None:
     if os.name == 'posix':
@@ -106,7 +120,7 @@ def clear_display() -> None:
         print('\033c', end='')
 
 
-def display_msg(msg: str = '', start: str = '', end: str = '\n', level: int = 0, sleep: float = 0, sleep_cd: bool = False, timestamp: bool = False, timestamp_fmt: str = '%H:%M:%S') -> None:
+def display_msg(msg: str = '', start: str = '', end: str = "\n", level: int = 0, sleep: float = 0, sleep_cd: bool = False, timestamp: bool = False, timestamp_fmt: str = '%H:%M:%S') -> None:
     if timestamp:
         msg = f"[{datetime.datetime.now().strftime(timestamp_fmt)}] {' ' * (level * 2)}{msg}"
 
@@ -155,21 +169,17 @@ class DatabaseSQLite:
 
 
 
-# HB
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CORE
+# ==================================================================================================
 
 class Hylandbook:
     Argparser: argparse.ArgumentParser
     Database: DatabaseSQLite
-
     args: argparse.Namespace
     save_dir: Path
     data_dir: Path
     db_file: Path
-
-    sd_cache: dict
-
-
+    sd_cache: dict = {}
 
 
     def __init__(self) -> None:
@@ -186,6 +196,8 @@ class Hylandbook:
 
         self.args = self.Argparser.parse_args()
 
+        self.args.check_interval = max(MIN_CHECK_INTERVAL, self.args.check_interval)
+
         if not self._init_fs():
             display_msg(msg="_init_fs failed... exiting.", start="\n")
             sys.exit(1)
@@ -196,32 +208,28 @@ class Hylandbook:
             display_msg(msg="_init_db failed... exiting.", start="\n")
             sys.exit(2)
 
-        self.sd_cache = {}
-
-
 
     def main(self) -> None:
         con, cur = self.Database.connect()
 
         try:
-            display_msg(msg=f"loading data profile ...")
+            display_msg(msg="loading data profile ...")
 
             sd_profile: dict = {
-                'save_dir': self.save_dir.name,
+                'save_dir': str(self.save_dir),
                 'organisation': self._sd(col='organisation'),
                 'seed': self._sd(col='seed'),
             }
 
-            if not sd_profile.get('save_dir') \
-            or not sd_profile.get('organisation') \
-            or not sd_profile.get('seed'):
+            if not sd_profile.get('save_dir') or not sd_profile.get('organisation') or not sd_profile.get('seed'):
                 display_msg(msg="[BOO] required data_profile values missing")
                 sys.exit(3)
 
-
             sd_id: int|None = None
+            r: sqlite3.Cursor
 
-            r: sqlite3.Cursor = cur.execute('''
+            r = cur.execute(
+                '''
                 SELECT save_id
                 FROM saves
                 WHERE save_dir = :save_dir AND organisation = :organisation AND seed = :seed
@@ -234,7 +242,8 @@ class Hylandbook:
             existing_save: tuple|None = r.fetchone()
 
             if not existing_save:
-                r = cur.execute('''
+                r = cur.execute(
+                    '''
                     INSERT INTO saves (save_dir, organisation, seed)
                     VALUES (:save_dir, :organisation, :seed);
                     ''',
@@ -242,36 +251,32 @@ class Hylandbook:
                 )
                 sd_id = cur.lastrowid
                 con.commit()
-                display_msg(msg=f"new save: id {sd_id}")
+                display_msg(msg=f"new save detected")
             else:
                 sd_id = existing_save[0]
-                display_msg(msg=f"existing save: id {sd_id}")
+                display_msg(msg=f"existing save detected")
 
             if not sd_id:
                 display_msg(msg="[BOO] failed to get sd_id")
                 sys.exit(2)
 
-            display_msg()
-            for k, v in sd_profile.items():
-                display_msg(f"{k:>12} = {v}")
-            display_msg()
+            display_msg(msg=f"  save directory: {self.save_dir}", start="\n")
+            display_msg(msg=f"  data directory: {self.data_dir}")
+            display_msg(msg=f"         save id: {sd_id}")
+            display_msg(msg=f"    organisation: {sd_profile.get('organisation')}")
+            display_msg(msg=f"            seed: {sd_profile.get('seed')}", end="\n\n")
+
+            display_msg("to stop, type CTRL+C or close this window", end="\n\n")
 
             if input("start monitoring? [y/n]: ").strip().lower() != 'y':
                 return
 
-
             while True:
-                _S: float = time.time()
-
                 clear_display()
                 display_msg(msg=BANNER, end="\n\n")
-
-                display_msg("to stop, type CTRL+C or close this window", end="\n\n")
-
+                display_msg(msg="processing save game data ...", timestamp=True)
 
                 self.sd_cache = {}
-
-                display_msg(msg=f"processing save game data ...", timestamp=True)
 
                 sd_log: dict = {
                     'gameversion': self._sd(col='gameversion'),
@@ -287,8 +292,9 @@ class Hylandbook:
                     'discoveredproducts': self._sd(col='discoveredproducts') or 0,
                 }
 
-                r: sqlite3.Cursor = cur.execute('''
-                    SELECT gameversion, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts
+                r: sqlite3.Cursor = cur.execute(
+                    '''
+                    SELECT onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts
                     FROM logs
                     WHERE save_id = :save_id
                     ORDER BY log_id DESC
@@ -299,6 +305,7 @@ class Hylandbook:
 
                 previous: tuple|None = r.fetchone()
                 current: dict = sd_log.copy()
+                del current['gameversion']
                 del current['playtime']
                 del current['elapseddays']
 
@@ -306,7 +313,8 @@ class Hylandbook:
                     display_msg(msg="no changes detected", timestamp=True)
                 else:
                     display_msg(msg="changes detected", timestamp=True)
-                    cur.execute('''
+                    cur.execute(
+                        '''
                         INSERT INTO logs (log_time, save_id, gameversion, playtime, elapseddays, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts)
                         VALUES (:log_time, :save_id, :gameversion, :playtime, :elapseddays, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts);
                         ''',
@@ -323,29 +331,16 @@ class Hylandbook:
 
                 display_msg()
                 for k, v in sd_log.items():
-                    display_msg(f"{k:>18}: {v}")
+                    display_msg(f"{k:>20}: {v}")
                 display_msg()
 
-                display_msg(msg=f"check done in {time.time() - _S:.4f}s, next in", timestamp=True, sleep=CHECK_INTERVAL, sleep_cd=True)
+                display_msg(msg="next check in", timestamp=True, sleep=self.args.check_interval, sleep_cd=True)
 
         finally:
             con.close()
 
 
-
-
-
-
-
-
-
-
-
-
-
     def _sd(self, col: str) -> str|int|float|None:
-        # time.sleep(SD_THROTTLE)
-
         data: dict|None
 
         if col == 'gameversion':
@@ -417,30 +412,29 @@ class Hylandbook:
         return None
 
 
-
-
     def _sd_data(self, f: str) -> dict|None:
+        if self.sd_cache.get(f):
+            return self.sd_cache[f]
+
         file = self.save_dir.joinpath(f)
 
         if not file.is_file():
             return None
 
-        time.sleep(SD_THROTTLE)
+        time.sleep(SD_FILE_READ_THROTTLE)
 
         try:
             data: dict = json.loads(s=file.read_text())
             self.sd_cache[f] = data
 
         except json.JSONDecodeError as e:
-            display_msg(msg=f"[BOO] loading `{f}` sd_data failed: {e}")
+            display_msg(msg=f"[BOO] failed to load `{f}`: {e}")
             return None
 
         if not data:
             return None
 
         return data
-
-
 
 
     def _init_fs(self) -> bool:
@@ -479,21 +473,26 @@ class Hylandbook:
             finally:
                 con.close()
 
+
+        # raise Exception('test ing')
+
         return True
 
 
 
 
-
-
-
+# RUN
+# ==================================================================================================
 
 if __name__ == '__main__':
     try:
         App = Hylandbook()
         App.main()
+    except Exception as e:
+        print(f"\n[BOO] {e}")
+        input("press any key to exit")
     except KeyboardInterrupt:
-        pass
+        print("\nexiting ...")
 
 
 

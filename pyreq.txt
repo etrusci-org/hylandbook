@@ -1,3 +1,0 @@
-# for dev only
-pyinstaller
-flake8

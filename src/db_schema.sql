@@ -17,8 +17,8 @@ CREATE TABLE 'logs' (
     'save_id' INTEGER NOT NULL,
 
     'gameversion' TEXT DEFAULT NULL,
-    'playtime' INTEGER DEFAULT NULL, -- *
-    'elapseddays' INTEGER DEFAULT NULL, -- *
+    'playtime' INTEGER DEFAULT NULL,
+    'elapseddays' INTEGER DEFAULT NULL,
     'onlinebalance' REAL DEFAULT NULL,
     'networth' REAL DEFAULT NULL,
     'lifetimeearnings' REAL DEFAULT NULL,
@@ -27,7 +27,6 @@ CREATE TABLE 'logs' (
     'xp' INTEGER DEFAULT NULL,
     'totalxp' INTEGER DEFAULT NULL,
     'discoveredproducts' INTEGER DEFAULT NULL,
-
 
     PRIMARY KEY('log_id' AUTOINCREMENT),
     FOREIGN KEY ('save_id') REFERENCES 'saves'('save_id')

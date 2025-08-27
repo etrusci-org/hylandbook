@@ -1,6 +1,6 @@
 @echo off
 
-@REM RUN FROM repo root directory
+:: RUN FROM repo root directory
 
 pyinstaller ^
     --distpath "./dist" ^
@@ -11,10 +11,10 @@ pyinstaller ^
     --console ^
     --clean ^
     --onefile ^
-    "src/hylandbook.py"
+    "./src/hylandbook.py"
 
 certutil ^
     -hashfile "./dist/hylandbook.exe" ^
     SHA256 ^
     | findstr /v "hash" ^
-    > "./dist/hylandbook.exe.checksum.txt"
+    > "./dist/hylandbook.exe.sha256"
