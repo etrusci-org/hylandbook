@@ -25,7 +25,7 @@ from pathlib import Path
 BANNER: str = '-=[ H Y L A N D B O O K ]=-'
 # LAST_COMPAT_VERSION: str = '0.3.6f6'
 DEFAULT_DATA_DIR: Path = Path.cwd() / 'hb_data'
-CHECK_INTERVAL: int = 60
+CHECK_INTERVAL: int = 10
 SD_THROTTLE: float = 0
 ARGPARSER_CONF: dict = {
     'init': {
@@ -196,9 +196,7 @@ class Hylandbook:
             display_msg(msg="_init_db failed... exiting.", start="\n")
             sys.exit(2)
 
-
-
-
+        self.sd_cache = {}
 
 
 
@@ -206,95 +204,88 @@ class Hylandbook:
         con, cur = self.Database.connect()
 
         try:
+            display_msg(msg=f"loading data profile ...")
+
+            sd_profile: dict = {
+                'save_dir': self.save_dir.name,
+                'organisation': self._sd(col='organisation'),
+                'seed': self._sd(col='seed'),
+            }
+
+            if not sd_profile.get('save_dir') \
+            or not sd_profile.get('organisation') \
+            or not sd_profile.get('seed'):
+                display_msg(msg="[BOO] required data_profile values missing")
+                sys.exit(3)
+
+
+            sd_id: int|None = None
+
+            r: sqlite3.Cursor = cur.execute('''
+                SELECT save_id
+                FROM saves
+                WHERE save_dir = :save_dir AND organisation = :organisation AND seed = :seed
+                ORDER BY save_id DESC
+                LIMIT 1;
+                ''',
+                sd_profile
+            )
+
+            existing_save: tuple|None = r.fetchone()
+
+            if not existing_save:
+                r = cur.execute('''
+                    INSERT INTO saves (save_dir, organisation, seed)
+                    VALUES (:save_dir, :organisation, :seed);
+                    ''',
+                    sd_profile
+                )
+                sd_id = cur.lastrowid
+                con.commit()
+                display_msg(msg=f"new save: id {sd_id}")
+            else:
+                sd_id = existing_save[0]
+                display_msg(msg=f"existing save: id {sd_id}")
+
+            if not sd_id:
+                display_msg(msg="[BOO] failed to get sd_id")
+                sys.exit(2)
+
+            display_msg()
+            for k, v in sd_profile.items():
+                display_msg(f"{k:>12} = {v}")
+            display_msg()
+
+            if input("start monitoring? [y/n]: ").strip().lower() != 'y':
+                return
+
+
             while True:
+                _S: float = time.time()
+
                 clear_display()
                 display_msg(msg=BANNER, end="\n\n")
 
+                display_msg("to stop, type CTRL+C or close this window", end="\n\n")
+
+
                 self.sd_cache = {}
-
-                display_msg(msg=f"loading data profile ...", timestamp=True)
-
-                sd_data: dict = {
-                    # to saves
-                    'save_dir': self.save_dir.name,
-                    'organisation': self._sd(col='organisation'),
-                    'seed': self._sd(col='seed'),
-                    # to logs
-                    # 'gameversion': self._sd(col='gameversion'),
-                    # 'playtime': self._sd(col='playtime'),
-                    # 'elapseddays': self._sd(col='elapseddays'),
-                    # 'onlinebalance': self._sd(col='onlinebalance'),
-                    # 'networth': self._sd(col='networth'),
-                    # 'lifetimeearnings': self._sd(col='lifetimeearnings'),
-                    # 'rank': self._sd(col='rank'),
-                    # 'tier': self._sd(col='tier'),
-                    # 'xp': self._sd(col='xp'),
-                    # 'totalxp': self._sd(col='totalxp'),
-                    # 'discoveredproducts': self._sd(col='discoveredproducts')
-                }
-
-                if not sd_data.get('save_dir') \
-                or not sd_data.get('organisation') \
-                or not sd_data.get('seed'):
-                    display_msg(msg="[BOO] required sd_data values missing")
-                    sys.exit(3)
-
-                sd_id: int|None = None
-
-                r: sqlite3.Cursor = cur.execute('''
-                    SELECT save_id
-                    FROM saves
-                    WHERE save_dir = :save_dir AND organisation = :organisation AND seed = :seed
-                    ORDER BY save_id DESC
-                    LIMIT 1;
-                    ''',
-                    sd_data
-                )
-
-                existing_save: tuple|None = r.fetchone()
-
-                if not existing_save:
-                    # display_msg(msg="new save detected", timestamp=True)
-                    r = cur.execute('''
-                        INSERT INTO saves (save_dir, organisation, seed)
-                        VALUES (:save_dir, :organisation, :seed);
-                        ''',
-                        sd_data
-                    )
-                    sd_id = cur.lastrowid
-                    con.commit()
-                else:
-                    sd_id = existing_save[0]
-                    # display_msg(msg=f"existing save detected, id {sd_id}", timestamp=True)
-
-                if not sd_id:
-                    display_msg(msg="[BOO] failed to get sd_id")
-                    sys.exit(2)
-
-                # display_msg(msg=f"logging as save_id {sd_id}", timestamp=True)
 
                 display_msg(msg=f"processing save game data ...", timestamp=True)
 
-                sd_data = {
-                    **sd_data,
-                    **{
-                        'gameversion': self._sd(col='gameversion'),
-                        'playtime': self._sd(col='playtime'),
-                        'elapseddays': self._sd(col='elapseddays'),
-                        'onlinebalance': self._sd(col='onlinebalance'),
-                        'networth': self._sd(col='networth'),
-                        'lifetimeearnings': self._sd(col='lifetimeearnings'),
-                        'rank': self._sd(col='rank'),
-                        'tier': self._sd(col='tier'),
-                        'xp': self._sd(col='xp'),
-                        'totalxp': self._sd(col='totalxp'),
-                        'discoveredproducts': self._sd(col='discoveredproducts')
-                    },
+                sd_log: dict = {
+                    'gameversion': self._sd(col='gameversion'),
+                    'playtime': self._sd(col='playtime') or 0,
+                    'elapseddays': self._sd(col='elapseddays') or 0,
+                    'onlinebalance': self._sd(col='onlinebalance') or 0,
+                    'networth': self._sd(col='networth') or 0,
+                    'lifetimeearnings': self._sd(col='lifetimeearnings') or 0,
+                    'rank': self._sd(col='rank') or 0,
+                    'tier': self._sd(col='tier') or 0,
+                    'xp': self._sd(col='xp') or 0,
+                    'totalxp': self._sd(col='totalxp') or 0,
+                    'discoveredproducts': self._sd(col='discoveredproducts') or 0,
                 }
-
-                # print('sd_data  ', sd_data)
-                # print('sd_cache ', self.sd_cache)
-                # print('sd_id    ', sd_id)
 
                 r: sqlite3.Cursor = cur.execute('''
                     SELECT gameversion, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts
@@ -307,12 +298,9 @@ class Hylandbook:
                 )
 
                 previous: tuple|None = r.fetchone()
-                current: dict = sd_data.copy()
-                del current['save_dir']
-                del current['organisation']
+                current: dict = sd_log.copy()
                 del current['playtime']
                 del current['elapseddays']
-                del current['seed']
 
                 if previous == tuple(current.values()):
                     display_msg(msg="no changes detected", timestamp=True)
@@ -322,20 +310,23 @@ class Hylandbook:
                         INSERT INTO logs (log_time, save_id, gameversion, playtime, elapseddays, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts)
                         VALUES (:log_time, :save_id, :gameversion, :playtime, :elapseddays, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts);
                         ''',
-                        dict({
+                        {
                             **{
                                 'log_time': time.time(),
                                 'save_id': sd_id,
                             },
-                            **sd_data,
-                        })
+                            **sd_log,
+                        }
                     )
                     con.commit()
+                    # display_msg(msg=f"logged saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
 
-                    display_msg(msg=f"logged saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
+                display_msg()
+                for k, v in sd_log.items():
+                    display_msg(f"{k:>18}: {v}")
+                display_msg()
 
-                display_msg(msg=json.dumps(obj=sd_data, indent=4))
-                display_msg(msg=f"next check in", timestamp=True, sleep=CHECK_INTERVAL, sleep_cd=True)
+                display_msg(msg=f"check done in {time.time() - _S:.4f}s, next in", timestamp=True, sleep=CHECK_INTERVAL, sleep_cd=True)
 
         finally:
             con.close()
@@ -349,8 +340,11 @@ class Hylandbook:
 
 
 
+
+
+
     def _sd(self, col: str) -> str|int|float|None:
-        time.sleep(SD_THROTTLE)
+        # time.sleep(SD_THROTTLE)
 
         data: dict|None
 
@@ -426,13 +420,12 @@ class Hylandbook:
 
 
     def _sd_data(self, f: str) -> dict|None:
-        if self.sd_cache.get(f):
-            return self.sd_cache[f]
-
         file = self.save_dir.joinpath(f)
 
         if not file.is_file():
             return None
+
+        time.sleep(SD_THROTTLE)
 
         try:
             data: dict = json.loads(s=file.read_text())
@@ -501,3 +494,155 @@ if __name__ == '__main__':
         App.main()
     except KeyboardInterrupt:
         pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # def main(self) -> None:
+    #     con, cur = self.Database.connect()
+
+    #     try:
+    #         while True:
+    #             _S: float = time.time()
+
+    #             clear_display()
+    #             display_msg(msg=BANNER, end="\n\n")
+
+    #             self.sd_cache = {}
+
+    #             display_msg(msg=f"loading data profile ...", timestamp=True)
+
+    #             sd_data: dict = {
+    #                 # to saves
+    #                 'save_dir': self.save_dir.name,
+    #                 'organisation': self._sd(col='organisation'),
+    #                 'seed': self._sd(col='seed'),
+    #             }
+
+    #             if not sd_data.get('save_dir') \
+    #             or not sd_data.get('organisation') \
+    #             or not sd_data.get('seed'):
+    #                 display_msg(msg="[BOO] required sd_data values missing")
+    #                 sys.exit(3)
+
+    #             sd_id: int|None = None
+
+    #             r: sqlite3.Cursor = cur.execute('''
+    #                 SELECT save_id
+    #                 FROM saves
+    #                 WHERE save_dir = :save_dir AND organisation = :organisation AND seed = :seed
+    #                 ORDER BY save_id DESC
+    #                 LIMIT 1;
+    #                 ''',
+    #                 sd_data
+    #             )
+
+    #             existing_save: tuple|None = r.fetchone()
+
+    #             if not existing_save:
+    #                 # display_msg(msg="new save detected", timestamp=True)
+    #                 r = cur.execute('''
+    #                     INSERT INTO saves (save_dir, organisation, seed)
+    #                     VALUES (:save_dir, :organisation, :seed);
+    #                     ''',
+    #                     sd_data
+    #                 )
+    #                 sd_id = cur.lastrowid
+    #                 con.commit()
+    #             else:
+    #                 sd_id = existing_save[0]
+    #                 # display_msg(msg=f"existing save detected, id {sd_id}", timestamp=True)
+
+    #             if not sd_id:
+    #                 display_msg(msg="[BOO] failed to get sd_id")
+    #                 sys.exit(2)
+
+    #             # display_msg(msg=f"logging as save_id {sd_id}", timestamp=True)
+
+    #             display_msg(msg=f"processing save game data ...", timestamp=True)
+
+    #             sd_data = {
+    #                 **sd_data,
+    #                 **{
+    #                     # to logs
+    #                     'gameversion': self._sd(col='gameversion'),
+    #                     'playtime': self._sd(col='playtime') or 0,
+    #                     'elapseddays': self._sd(col='elapseddays') or 0,
+    #                     'onlinebalance': self._sd(col='onlinebalance') or 0,
+    #                     'networth': self._sd(col='networth') or 0,
+    #                     'lifetimeearnings': self._sd(col='lifetimeearnings') or 0,
+    #                     'rank': self._sd(col='rank') or 0,
+    #                     'tier': self._sd(col='tier') or 0,
+    #                     'xp': self._sd(col='xp') or 0,
+    #                     'totalxp': self._sd(col='totalxp') or 0,
+    #                     'discoveredproducts': self._sd(col='discoveredproducts') or 0,
+    #                 },
+    #             }
+
+    #             # print('sd_data  ', sd_data)
+    #             # print('sd_cache ', self.sd_cache)
+    #             # print('sd_id    ', sd_id)
+
+    #             r: sqlite3.Cursor = cur.execute('''
+    #                 SELECT gameversion, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts
+    #                 FROM logs
+    #                 WHERE save_id = :save_id
+    #                 ORDER BY log_id DESC
+    #                 LIMIT 1;
+    #                 ''',
+    #                 {'save_id': sd_id}
+    #             )
+
+    #             previous: tuple|None = r.fetchone()
+    #             current: dict = sd_data.copy()
+    #             del current['save_dir']
+    #             del current['organisation']
+    #             del current['playtime']
+    #             del current['elapseddays']
+    #             del current['seed']
+
+    #             if previous == tuple(current.values()):
+    #                 display_msg(msg="no changes detected", timestamp=True)
+    #             else:
+    #                 display_msg(msg="changes detected", timestamp=True)
+    #                 cur.execute('''
+    #                     INSERT INTO logs (log_time, save_id, gameversion, playtime, elapseddays, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts)
+    #                     VALUES (:log_time, :save_id, :gameversion, :playtime, :elapseddays, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts);
+    #                     ''',
+    #                     {
+    #                         **{
+    #                             'log_time': time.time(),
+    #                             'save_id': sd_id,
+    #                         },
+    #                         **sd_data,
+    #                     }
+    #                 )
+    #                 con.commit()
+    #                 # display_msg(msg=f"logged saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
+
+    #             display_msg()
+    #             for k, v in sd_data.items():
+    #                 display_msg(f"{k:>18} = {v}")
+    #             display_msg()
+
+    #             display_msg(msg=f"check done in {time.time() - _S:.4f}s, next in", timestamp=True, sleep=CHECK_INTERVAL, sleep_cd=True)
+
+    #     finally:
+    #         con.close()
