@@ -1,0 +1,3 @@
+@echo off
+
+pip install --no-cache-dir --upgrade --requirement pyreq.txt

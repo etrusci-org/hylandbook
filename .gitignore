@@ -1,2 +1,4 @@
+/.build/
+/.pyvenv/
 /0000/
 hb_data/
