@@ -398,7 +398,7 @@ class Hylandbook:
                     )
                     con.commit()
                     # display_msg(msg=f"logged saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
-                self._export(current_profile_data=sd_profile, current_log_data=sd_log, save_id=sd_id)
+                    self._export(current_profile_data=sd_profile, current_log_data=sd_log, save_id=sd_id)
 
                 display_msg()
                 for k, v in sd_log.items():
