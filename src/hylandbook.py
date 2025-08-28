@@ -1,11 +1,15 @@
 '''
 HYLANDBOOK
 
-Last tested on game version 0.3.6f6
-Try --help
+Log your Schedule I progress.
+SAVEGAME_PATH is required, optional arguments will use their defaults if not set by you.
+PATH for --data-dir must not exist before you start the tool, but you will be asked for confirmation before it gets created automatically.
+
+I tested this last on game version 0.3.6f6.
 '''
 
 import argparse
+import csv
 import datetime
 import json
 import os
@@ -21,21 +25,21 @@ from pathlib import Path
 # SETUP
 # ==================================================================================================
 
-BANNER: str = ''' _______ ___ ___ _____   _______ _______ _____  ______ _______ _______ __  __
-|   |   |   |   |     |_|   _   |    |  |     \\|   __ \\       |       |  |/  |
-|       |\\     /|       |       |       |  --  |   __ <   -   |   -   |     <
-|___|___| |___| |_______|___|___|__|____|_____/|______/_______|_______|__|\\__|'''
+# BANNER: str = ''' _______ ___ ___ _____   _______ _______ _____  ______ _______ _______ __  __
+# |   |   |   |   |     |_|   _   |    |  |     \\|   __ \\       |       |  |/  |
+# |       |\\     /|       |       |       |  --  |   __ <   -   |   -   |     <
+# |___|___| |___| |_______|___|___|__|____|_____/|______/_______|_______|__|\\__|'''
+BANNER: str = '-=[ H Y L A N D B O O K ]=-'
 DEFAULT_DATA_DIR: Path = Path.cwd() / 'hb_data'
+DB_FILE_NAME: str = 'book.db'
 DEFAULT_CHECK_INTERVAL: int = 60
-MIN_CHECK_INTERVAL: int = 20
+MIN_CHECK_INTERVAL: int = 10
 SD_FILE_READ_THROTTLE: float = 0
 ARGPARSER_CONF: dict = {
     'init': {
         'prog': "hylandbook",
-        'description': "Log your Schedule I progress. "
-                       "savegame path is required, options are optional and will use their defaults if not set by you. "
-                       "data directory must not exist but you will be asked for confirmation before it gets created automatically.",
-        'epilog': "cool links: <https://scheduleonegame.com> <https://github.com/etrusci-org/hylandbook>"
+        'description': __doc__[11:] if __doc__ else '',
+        'epilog': "Cool links: https://scheduleonegame.com, https://github.com/etrusci-org/hylandbook",
     },
     'args': [
         {
@@ -50,7 +54,7 @@ ARGPARSER_CONF: dict = {
         {
             'name_or_flags': ['-d', '--data-dir'],
             'conf': {
-                'metavar': 'DATA_PATH',
+                'metavar': 'PATH',
                 'type': str,
                 'default': DEFAULT_DATA_DIR,
                 'help': f"path to directory where the logged data will be stored, default: {DEFAULT_DATA_DIR}",
@@ -120,7 +124,7 @@ def clear_display() -> None:
         print('\033c', end='')
 
 
-def display_msg(msg: str = '', start: str = '', end: str = "\n", level: int = 0, sleep: float = 0, sleep_cd: bool = False, timestamp: bool = False, timestamp_fmt: str = '%H:%M:%S') -> None:
+def display_msg(msg: str = '', start: str = '', end: str = "\n", level: int = 0, sleep: float = 0, sleep_cd: bool = False, timestamp: bool = False, timestamp_fmt: str = '%H:%M:%S.%f') -> None:
     if timestamp:
         msg = f"[{datetime.datetime.now().strftime(timestamp_fmt)}] {' ' * (level * 2)}{msg}"
 
@@ -213,7 +217,7 @@ class Hylandbook:
         con, cur = self.Database.connect()
 
         try:
-            display_msg(msg="loading data profile ...")
+            display_msg(msg="loading save data profile", timestamp=True)
 
             sd_profile: dict = {
                 'save_dir': str(self.save_dir),
@@ -251,10 +255,10 @@ class Hylandbook:
                 )
                 sd_id = cur.lastrowid
                 con.commit()
-                display_msg(msg=f"new save detected")
+                display_msg(msg=f"new save data profile created", timestamp=True)
             else:
                 sd_id = existing_save[0]
-                display_msg(msg=f"existing save detected")
+                display_msg(msg=f"existing save detected", timestamp=True)
 
             if not sd_id:
                 display_msg(msg="[BOO] failed to get sd_id")
@@ -266,7 +270,7 @@ class Hylandbook:
             display_msg(msg=f"    organisation: {sd_profile.get('organisation')}")
             display_msg(msg=f"            seed: {sd_profile.get('seed')}", end="\n\n")
 
-            display_msg("to stop, type CTRL+C or close this window", end="\n\n")
+            display_msg("to stop hylandbook once it is running, type CTRL+C or close this window", end="\n\n")
 
             if input("start monitoring? [y/n]: ").strip().lower() != 'y':
                 return
@@ -274,7 +278,7 @@ class Hylandbook:
             while True:
                 clear_display()
                 display_msg(msg=BANNER, end="\n\n")
-                display_msg(msg="processing save game data ...", timestamp=True)
+                display_msg(msg="parsing save game data", timestamp=True)
 
                 self.sd_cache = {}
 
@@ -328,13 +332,14 @@ class Hylandbook:
                     )
                     con.commit()
                     # display_msg(msg=f"logged saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
+                    self._export(current_profile_data=sd_profile, current_log_data=sd_log, save_id=sd_id)
 
                 display_msg()
                 for k, v in sd_log.items():
                     display_msg(f"{k:>20}: {v}")
                 display_msg()
 
-                display_msg(msg="next check in", timestamp=True, sleep=self.args.check_interval, sleep_cd=True)
+                display_msg(msg="next check in", sleep=self.args.check_interval, sleep_cd=True)
 
         finally:
             con.close()
@@ -440,7 +445,7 @@ class Hylandbook:
     def _init_fs(self) -> bool:
         self.save_dir = Path(self.args.save_dir).resolve()
         self.data_dir = Path(self.args.data_dir).resolve()
-        self.db_file = self.data_dir.joinpath('data.db')
+        self.db_file = self.data_dir.joinpath(DB_FILE_NAME)
 
         if not self.save_dir.exists() or not self.save_dir.is_dir():
             display_msg(msg=f"[BOO] save_dir does not exist or is not a directory: {self.save_dir}")
@@ -457,7 +462,6 @@ class Hylandbook:
             if not self.data_dir.exists():
                 display_msg(msg=f"[BOO] could not create data_dir: {self.data_dir}")
                 return False
-
 
         return True
 
@@ -479,6 +483,54 @@ class Hylandbook:
         return True
 
 
+    def _export(self, current_profile_data: dict, current_log_data: dict, save_id: int) -> None:
+        # display_msg(msg=f"exporting data", timestamp=True)
+
+        # prep current data
+        current: dict = {
+            'save': current_profile_data.copy(),
+            'log': current_log_data.copy(),
+        }
+        current['save']['save_dir'] = Path(current['save']['save_dir']).name
+
+        # current json
+        file: Path = self.data_dir.joinpath(f'current-{save_id}.json')
+        file.write_text(data=json.dumps(obj=current, indent=4))
+
+
+        # prep history data
+        con, cur = self.Database.connect()
+        try:
+            r: sqlite3.Cursor = cur.execute(
+                '''
+                SELECT * FROM logs WHERE save_id = :save_id
+                ''',
+                {'save_id': save_id}
+            )
+            history_rows: list = r.fetchall()
+            history_cols: list = [v[0] for v in cur.description]
+        finally:
+            con.close()
+
+        history: dict = {
+            'save': current_profile_data.copy(),
+            'log': [dict(zip(history_cols, row)) for row in history_rows],
+        }
+        history['save']['save_dir'] = Path(history['save']['save_dir']).name
+
+        # history json
+        file: Path = self.data_dir.joinpath(f'history-{save_id}.json')
+        file.write_text(data=json.dumps(obj=history, indent=4))
+
+        # history csv
+        # does not contain data profile
+        file: Path = self.data_dir.joinpath(f'history-{save_id}.csv')
+        with open(file=file, mode='w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(history_cols)
+            writer.writerows(history_rows)
+
+
 
 
 # RUN
@@ -492,156 +544,4 @@ if __name__ == '__main__':
         print(f"\n[BOO] {e}")
         input("press any key to exit")
     except KeyboardInterrupt:
-        print("\nexiting ...")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # def main(self) -> None:
-    #     con, cur = self.Database.connect()
-
-    #     try:
-    #         while True:
-    #             _S: float = time.time()
-
-    #             clear_display()
-    #             display_msg(msg=BANNER, end="\n\n")
-
-    #             self.sd_cache = {}
-
-    #             display_msg(msg=f"loading data profile ...", timestamp=True)
-
-    #             sd_data: dict = {
-    #                 # to saves
-    #                 'save_dir': self.save_dir.name,
-    #                 'organisation': self._sd(col='organisation'),
-    #                 'seed': self._sd(col='seed'),
-    #             }
-
-    #             if not sd_data.get('save_dir') \
-    #             or not sd_data.get('organisation') \
-    #             or not sd_data.get('seed'):
-    #                 display_msg(msg="[BOO] required sd_data values missing")
-    #                 sys.exit(3)
-
-    #             sd_id: int|None = None
-
-    #             r: sqlite3.Cursor = cur.execute('''
-    #                 SELECT save_id
-    #                 FROM saves
-    #                 WHERE save_dir = :save_dir AND organisation = :organisation AND seed = :seed
-    #                 ORDER BY save_id DESC
-    #                 LIMIT 1;
-    #                 ''',
-    #                 sd_data
-    #             )
-
-    #             existing_save: tuple|None = r.fetchone()
-
-    #             if not existing_save:
-    #                 # display_msg(msg="new save detected", timestamp=True)
-    #                 r = cur.execute('''
-    #                     INSERT INTO saves (save_dir, organisation, seed)
-    #                     VALUES (:save_dir, :organisation, :seed);
-    #                     ''',
-    #                     sd_data
-    #                 )
-    #                 sd_id = cur.lastrowid
-    #                 con.commit()
-    #             else:
-    #                 sd_id = existing_save[0]
-    #                 # display_msg(msg=f"existing save detected, id {sd_id}", timestamp=True)
-
-    #             if not sd_id:
-    #                 display_msg(msg="[BOO] failed to get sd_id")
-    #                 sys.exit(2)
-
-    #             # display_msg(msg=f"logging as save_id {sd_id}", timestamp=True)
-
-    #             display_msg(msg=f"processing save game data ...", timestamp=True)
-
-    #             sd_data = {
-    #                 **sd_data,
-    #                 **{
-    #                     # to logs
-    #                     'gameversion': self._sd(col='gameversion'),
-    #                     'playtime': self._sd(col='playtime') or 0,
-    #                     'elapseddays': self._sd(col='elapseddays') or 0,
-    #                     'onlinebalance': self._sd(col='onlinebalance') or 0,
-    #                     'networth': self._sd(col='networth') or 0,
-    #                     'lifetimeearnings': self._sd(col='lifetimeearnings') or 0,
-    #                     'rank': self._sd(col='rank') or 0,
-    #                     'tier': self._sd(col='tier') or 0,
-    #                     'xp': self._sd(col='xp') or 0,
-    #                     'totalxp': self._sd(col='totalxp') or 0,
-    #                     'discoveredproducts': self._sd(col='discoveredproducts') or 0,
-    #                 },
-    #             }
-
-    #             # print('sd_data  ', sd_data)
-    #             # print('sd_cache ', self.sd_cache)
-    #             # print('sd_id    ', sd_id)
-
-    #             r: sqlite3.Cursor = cur.execute('''
-    #                 SELECT gameversion, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts
-    #                 FROM logs
-    #                 WHERE save_id = :save_id
-    #                 ORDER BY log_id DESC
-    #                 LIMIT 1;
-    #                 ''',
-    #                 {'save_id': sd_id}
-    #             )
-
-    #             previous: tuple|None = r.fetchone()
-    #             current: dict = sd_data.copy()
-    #             del current['save_dir']
-    #             del current['organisation']
-    #             del current['playtime']
-    #             del current['elapseddays']
-    #             del current['seed']
-
-    #             if previous == tuple(current.values()):
-    #                 display_msg(msg="no changes detected", timestamp=True)
-    #             else:
-    #                 display_msg(msg="changes detected", timestamp=True)
-    #                 cur.execute('''
-    #                     INSERT INTO logs (log_time, save_id, gameversion, playtime, elapseddays, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts)
-    #                     VALUES (:log_time, :save_id, :gameversion, :playtime, :elapseddays, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts);
-    #                     ''',
-    #                     {
-    #                         **{
-    #                             'log_time': time.time(),
-    #                             'save_id': sd_id,
-    #                         },
-    #                         **sd_data,
-    #                     }
-    #                 )
-    #                 con.commit()
-    #                 # display_msg(msg=f"logged saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
-
-    #             display_msg()
-    #             for k, v in sd_data.items():
-    #                 display_msg(f"{k:>18} = {v}")
-    #             display_msg()
-
-    #             display_msg(msg=f"check done in {time.time() - _S:.4f}s, next in", timestamp=True, sleep=CHECK_INTERVAL, sleep_cd=True)
-
-    #     finally:
-    #         con.close()
+        print("\nexiting")
