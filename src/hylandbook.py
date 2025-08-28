@@ -25,15 +25,11 @@ from pathlib import Path
 # SETUP
 # ==================================================================================================
 
-# BANNER: str = ''' _______ ___ ___ _____   _______ _______ _____  ______ _______ _______ __  __
-# |   |   |   |   |     |_|   _   |    |  |     \\|   __ \\       |       |  |/  |
-# |       |\\     /|       |       |       |  --  |   __ <   -   |   -   |     <
-# |___|___| |___| |_______|___|___|__|____|_____/|______/_______|_______|__|\\__|'''
 BANNER: str = '-=[ H Y L A N D B O O K ]=-'
 DEFAULT_DATA_DIR: Path = Path.cwd() / 'hb_data'
 DB_FILE_NAME: str = 'book.db'
 DEFAULT_CHECK_INTERVAL: int = 60
-MIN_CHECK_INTERVAL: int = 10
+MIN_CHECK_INTERVAL: int = 30
 SD_FILE_READ_THROTTLE: float = 0
 ARGPARSER_CONF: dict = {
     'init': {
@@ -72,41 +68,111 @@ ARGPARSER_CONF: dict = {
     ],
 }
 DB_SCHEMA: str = '''
-    BEGIN TRANSACTION;
+BEGIN TRANSACTION;
 
-    CREATE TABLE 'saves' (
-        'save_id' INTEGER NOT NULL,
+CREATE TABLE 'saves' (
+    'save_id' INTEGER NOT NULL,
 
-        'save_dir' TEXT NOT NULL,
-        'organisation' TEXT NOT NULL,
-        'seed' INTEGER NOT NULL,
+    'save_dir' TEXT NOT NULL,
+    'organisation' TEXT NOT NULL,
+    'seed' INTEGER NOT NULL,
 
-        PRIMARY KEY('save_id' AUTOINCREMENT)
-    );
+    PRIMARY KEY('save_id' AUTOINCREMENT)
+);
 
-    CREATE TABLE 'logs' (
-        'log_id' INTEGER NOT NULL,
+CREATE TABLE 'logs' (
+    'log_id' INTEGER NOT NULL,
 
-        'log_time' REAL NOT NULL,
-        'save_id' INTEGER NOT NULL,
+    'log_time' REAL NOT NULL,
+    'save_id' INTEGER NOT NULL,
 
-        'gameversion' TEXT DEFAULT NULL,
-        'playtime' INTEGER DEFAULT NULL,
-        'elapseddays' INTEGER DEFAULT NULL,
-        'onlinebalance' REAL DEFAULT NULL,
-        'networth' REAL DEFAULT NULL,
-        'lifetimeearnings' REAL DEFAULT NULL,
-        'rank' INTEGER DEFAULT NULL,
-        'tier' INTEGER DEFAULT NULL,
-        'xp' INTEGER DEFAULT NULL,
-        'totalxp' INTEGER DEFAULT NULL,
-        'discoveredproducts' INTEGER DEFAULT NULL,
+    'gameversion' TEXT DEFAULT NULL,
+    'playtime' INTEGER DEFAULT NULL,
+    'elapseddays' INTEGER DEFAULT NULL,
+    'onlinebalance' REAL DEFAULT NULL,
+    'networth' REAL DEFAULT NULL,
+    'lifetimeearnings' REAL DEFAULT NULL,
+    'rank' INTEGER DEFAULT NULL,
+    'tier' INTEGER DEFAULT NULL,
+    'xp' INTEGER DEFAULT NULL,
+    'totalxp' INTEGER DEFAULT NULL,
+    'discoveredproducts' INTEGER DEFAULT NULL,
 
-        PRIMARY KEY('log_id' AUTOINCREMENT),
-        FOREIGN KEY ('save_id') REFERENCES 'saves'('save_id')
-    );
+    PRIMARY KEY('log_id' AUTOINCREMENT),
+    FOREIGN KEY ('save_id') REFERENCES 'saves'('save_id')
+);
 
-    COMMIT;
+COMMIT;
+'''
+TXT_EXPORT_TPL: str = '''
+           SAVE_DIR: {save_dir}
+               SEED: {seed}
+       GAME VERSION: {gameversion}
+
+       ORGANISATION: {organisation}
+
+           PLAYTIME: {playtime}
+       ELAPSED DAYS: {elapseddays}
+
+     ONLINE BALANCE: {onlinebalance}
+           NETWORTH: {networth}
+  LIFETIME EARNINGS: {lifetimeearnings}
+
+               RANK: {rank}
+               TIER: {tier}
+                 XP: {xp}
+           TOTAL XP: {totalxp}
+
+DISCOVERED PRODUCTS: {discoveredproducts}
+
+      (export time): {_t}
+'''
+HTML_EXPORT_TPL: str = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="60">
+
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 16px;
+        }
+    </style>
+
+    <title>My Schedule I Progress</title>
+</head>
+<body>
+    <h1>My Schedule I Progress</h1>
+
+    <pre>
+             SAVE_DIR: {save_dir}
+                 SEED: {seed}
+         GAME VERSION: {gameversion}
+
+         ORGANISATION: {organisation}
+
+             PLAYTIME: {playtime}
+         ELAPSED DAYS: {elapseddays}
+
+       ONLINE BALANCE: {onlinebalance}
+             NETWORTH: {networth}
+    LIFETIME EARNINGS: {lifetimeearnings}
+
+                 RANK: {rank}
+                 TIER: {tier}
+                   XP: {xp}
+             TOTAL XP: {totalxp}
+
+  DISCOVERED PRODUCTS: {discoveredproducts}
+
+        (export time): {_t}
+    </pre>
+
+</body>
+</html>
 '''
 
 
@@ -332,7 +398,7 @@ class Hylandbook:
                     )
                     con.commit()
                     # display_msg(msg=f"logged saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
-                    self._export(current_profile_data=sd_profile, current_log_data=sd_log, save_id=sd_id)
+                self._export(current_profile_data=sd_profile, current_log_data=sd_log, save_id=sd_id)
 
                 display_msg()
                 for k, v in sd_log.items():
@@ -492,21 +558,40 @@ class Hylandbook:
             'log': current_log_data.copy(),
         }
         current['save']['save_dir'] = Path(current['save']['save_dir']).name
+        tpl_values: dict = {
+            **current['save'],
+            **current['log'],
+            '_t': datetime.datetime.now().strftime('%H:%M:%S'),
+        }
 
         # current json
-        file: Path = self.data_dir.joinpath(f'current-{save_id}.json')
+        file: Path = self.data_dir.joinpath('current.json')
         file.write_text(data=json.dumps(obj=current, indent=4))
 
+        # current txt
+        file: Path = self.data_dir.joinpath('current.txt')
+        tpl_file: Path = self.data_dir.joinpath('current.txt.tpl')
+        if not tpl_file.exists():
+            tpl_file.write_text(data=TXT_EXPORT_TPL.strip('\n'))
+        content: str = tpl_file.read_text()
+        for k, v in tpl_values.items():
+            content = content.replace(f'{{{k}}}', str(v))
+        file.write_text(data=content)
+
+        # current html
+        file: Path = self.data_dir.joinpath('current.html')
+        tpl_file: Path = self.data_dir.joinpath('current.html.tpl')
+        if not tpl_file.exists():
+            tpl_file.write_text(data=HTML_EXPORT_TPL.strip('\n'))
+        content: str = tpl_file.read_text()
+        for k, v in tpl_values.items():
+            content = content.replace(f'{{{k}}}', str(v))
+        file.write_text(data=content)
 
         # prep history data
         con, cur = self.Database.connect()
         try:
-            r: sqlite3.Cursor = cur.execute(
-                '''
-                SELECT * FROM logs WHERE save_id = :save_id
-                ''',
-                {'save_id': save_id}
-            )
+            r: sqlite3.Cursor = cur.execute('SELECT * FROM logs WHERE save_id = :save_id', {'save_id': save_id})
             history_rows: list = r.fetchall()
             history_cols: list = [v[0] for v in cur.description]
         finally:
