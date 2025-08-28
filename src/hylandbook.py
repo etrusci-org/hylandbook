@@ -5,7 +5,7 @@ Log your Schedule I progress.
 SAVEGAME_PATH is required, optional arguments will use their defaults if not set by you.
 PATH for --data-dir must not exist before you start the tool, but you will be asked for confirmation before it gets created automatically.
 
-I tested this last on game version 0.3.6f6.
+I last tested this on game version 0.4.0f5.
 '''
 
 import argparse
