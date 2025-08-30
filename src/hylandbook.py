@@ -27,9 +27,10 @@ from pathlib import Path
 
 BANNER: str = '-=[ H Y L A N D B O O K ]=-'
 DEFAULT_DATA_DIR: Path = Path.cwd() / 'hb_data'
-DB_FILE_NAME: str = 'book.db'
 DEFAULT_CHECK_INTERVAL: int = 60
-MIN_CHECK_INTERVAL: int = 30
+DEFAULT_SHOW_PARSING_SUMMARY: bool = False
+DB_FILE_NAME: str = 'book.db'
+MIN_CHECK_INTERVAL: int = 10
 SD_FILE_READ_THROTTLE: float = 0
 ARGPARSER_CONF: dict = {
     'init': {
@@ -63,6 +64,14 @@ ARGPARSER_CONF: dict = {
                 'type': int,
                 'default': DEFAULT_CHECK_INTERVAL,
                 'help': f"how frequently to check the save data for changes, in seconds, default: {DEFAULT_CHECK_INTERVAL}, minimum: {MIN_CHECK_INTERVAL}",
+            },
+        },
+        {
+            'name_or_flags': ['-s', '--display-summary'],
+            'conf': {
+                'action': 'store_true',
+                'default': DEFAULT_SHOW_PARSING_SUMMARY,
+                'help': f"display current data summary after parsing, default: {'display it' if DEFAULT_SHOW_PARSING_SUMMARY else 'hide it'}",
             },
         },
     ],
@@ -104,7 +113,7 @@ CREATE TABLE 'logs' (
 
 COMMIT;
 '''
-TXT_EXPORT_TPL: str = '''
+DEFAULT_TXT_EXPORT_TPL: str = '''
            SAVE_DIR: {save_dir}
                SEED: {seed}
        GAME VERSION: {gameversion}
@@ -127,49 +136,98 @@ DISCOVERED PRODUCTS: {discoveredproducts}
 
       (export time): {_t}
 '''
-HTML_EXPORT_TPL: str = '''
+DEFAULT_HTML_EXPORT_TPL: str = '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <meta http-equiv="refresh" content="60">
 
     <style>
         body {
             font-family: sans-serif;
             font-size: 16px;
+            color: #ffffff;
+            background: #0d1118;
+        }
+
+        h1 {
+            color: #89a960;
+        }
+
+        th {
+            text-align: right;
+            padding-right: .5rem;
         }
     </style>
 
-    <title>My Schedule I Progress</title>
+    <title>My Schedule I Statistics</title>
 </head>
 <body>
-    <h1>My Schedule I Progress</h1>
+    <h1>My Schedule I Statistics</h1>
 
-    <pre>
-             SAVE_DIR: {save_dir}
-                 SEED: {seed}
-         GAME VERSION: {gameversion}
-
-         ORGANISATION: {organisation}
-
-             PLAYTIME: {playtime}
-         ELAPSED DAYS: {elapseddays}
-
-       ONLINE BALANCE: {onlinebalance}
-             NETWORTH: {networth}
-    LIFETIME EARNINGS: {lifetimeearnings}
-
-                 RANK: {rank}
-                 TIER: {tier}
-                   XP: {xp}
-             TOTAL XP: {totalxp}
-
-  DISCOVERED PRODUCTS: {discoveredproducts}
-
-        (export time): {_t}
-    </pre>
+    <table>
+        <tbody>
+            <tr>
+                <th>Save Data Directory</td>
+                <td>{save_dir}</td>
+            </tr>
+            <tr>
+                <th>Game Seed</th>
+                <td>{seed}</td>
+            </tr>
+            <tr>
+                <th>Game Version</th>
+                <td>{gameversion}</td>
+            </tr>
+            <tr>
+                <th>Organisation</th>
+                <td>{organisation}</td>
+            </tr>
+            <tr>
+                <th>Online Balance</th>
+                <td>{onlinebalance}</td>
+            </tr>
+            <tr>
+                <th>Networth</th>
+                <td>{networth}</td>
+            </tr>
+            <tr>
+                <th>Lifetime Earnings</th>
+                <td>{lifetimeearnings}</td>
+            </tr>
+            <tr>
+                <th>Total Playtime</th>
+                <td>{playtime}</td>
+            </tr>
+            <tr>
+                <th>Rank</th>
+                <td>{rank}</td>
+            </tr>
+            <tr>
+                <th>Tier</th>
+                <td>{tier}</td>
+            </tr>
+            <tr>
+                <th>XP</th>
+                <td>{xp}</td>
+            </tr>
+            <tr>
+                <th>Total XP</th>
+                <td>{totalxp}</td>
+            </tr>
+            <tr>
+                <th>Discovered Products</th>
+                <td>{discoveredproducts}</td>
+            </tr>
+            <tr>
+                <th>Export Time</th>
+                <td>{_t}</td>
+            </tr>
+        </tbody>
+    </table>
 
 </body>
 </html>
@@ -190,7 +248,7 @@ def clear_display() -> None:
         print('\033c', end='')
 
 
-def display_msg(msg: str = '', start: str = '', end: str = "\n", level: int = 0, sleep: float = 0, sleep_cd: bool = False, timestamp: bool = False, timestamp_fmt: str = '%H:%M:%S.%f') -> None:
+def display_msg(msg: str = '', start: str = '', end: str = "\n", level: int = 0, sleep: float = 0, sleep_cd: bool = False, timestamp: bool = False, timestamp_fmt: str = '%H:%M:%S') -> None:
     if timestamp:
         msg = f"[{datetime.datetime.now().strftime(timestamp_fmt)}] {' ' * (level * 2)}{msg}"
 
@@ -283,7 +341,7 @@ class Hylandbook:
         con, cur = self.Database.connect()
 
         try:
-            display_msg(msg="loading save data profile", timestamp=True)
+            display_msg(msg="loading save data profile")
 
             sd_profile: dict = {
                 'save_dir': str(self.save_dir),
@@ -321,29 +379,33 @@ class Hylandbook:
                 )
                 sd_id = cur.lastrowid
                 con.commit()
-                display_msg(msg=f"new save data profile created", timestamp=True)
+                display_msg(msg="new save data profile created")
             else:
                 sd_id = existing_save[0]
-                display_msg(msg=f"existing save detected", timestamp=True)
+                display_msg(msg="existing save detected")
 
             if not sd_id:
                 display_msg(msg="[BOO] failed to get sd_id")
                 sys.exit(2)
 
-            display_msg(msg=f"  save directory: {self.save_dir}", start="\n")
-            display_msg(msg=f"  data directory: {self.data_dir}")
-            display_msg(msg=f"         save id: {sd_id}")
-            display_msg(msg=f"    organisation: {sd_profile.get('organisation')}")
-            display_msg(msg=f"            seed: {sd_profile.get('seed')}", end="\n\n")
+            display_msg(msg=f"save directory: {self.save_dir}", start="\n")
+            display_msg(msg=f"data directory: {self.data_dir}")
+            display_msg(msg=f"       save id: {sd_id}")
+            display_msg(msg=f"  organisation: {sd_profile.get('organisation')}")
+            display_msg(msg=f"          seed: {sd_profile.get('seed')}", end="\n\n")
 
-            display_msg("to stop hylandbook once it is running, type CTRL+C or close this window", end="\n\n")
+            display_msg("to quit, type CTRL+C or close this window", end="\n\n")
 
             if input("start monitoring? [y/n]: ").strip().lower() != 'y':
                 return
 
+            # clear_display()
+            # display_msg(msg=BANNER, end="\n\n")
+
             while True:
                 clear_display()
                 display_msg(msg=BANNER, end="\n\n")
+
                 display_msg(msg="parsing save game data", timestamp=True)
 
                 self.sd_cache = {}
@@ -397,12 +459,17 @@ class Hylandbook:
                         }
                     )
                     con.commit()
-                    # display_msg(msg=f"logged saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
+
+                    display_msg(msg=f"logged to {self.db_file.name}: saves.save_id {sd_id} logs.log_id {cur.lastrowid}", timestamp=True)
+
+                    display_msg(msg="exporting data", timestamp=True)
                     self._export(current_profile_data=sd_profile, current_log_data=sd_log, save_id=sd_id)
 
-                display_msg()
-                for k, v in sd_log.items():
-                    display_msg(f"{k:>20}: {v}")
+                if self.args.display_summary:
+                    display_msg()
+                    for k, v in sd_log.items():
+                        display_msg(f"{k:>{max([len(k) for k in sd_log])}}: {v}")
+
                 display_msg()
 
                 display_msg(msg="next check in", sleep=self.args.check_interval, sleep_cd=True)
@@ -415,95 +482,98 @@ class Hylandbook:
         data: dict|None
 
         if col == 'gameversion':
-            data = self._sd_data(f='Game.json') or {}
+            data = self._sd_data(f='Game.json')
             if data.get('GameVersion'):
                 return str(data['GameVersion'])
 
         if col == 'organisation':
-            data = self._sd_data(f='Game.json') or {}
+            data = self._sd_data(f='Game.json')
             if data.get('OrganisationName'):
                 return str(data['OrganisationName'])
 
         if col == 'seed':
-            data = self._sd_data(f='Game.json') or {}
+            data = self._sd_data(f='Game.json')
             if data.get('Seed'):
                 return int(data['Seed'])
 
         if col == 'playtime':
-            data = self._sd_data(f='Time.json') or {}
+            data = self._sd_data(f='Time.json')
             if data.get('Playtime'):
                 return int(data['Playtime'])
 
         if col == 'elapseddays':
-            data = self._sd_data(f='Time.json') or {}
+            data = self._sd_data(f='Time.json')
             if data.get('ElapsedDays'):
                 return int(data['ElapsedDays'])
 
         if col == 'onlinebalance':
-            data = self._sd_data(f='Money.json') or {}
+            data = self._sd_data(f='Money.json')
             if data.get('OnlineBalance'):
                 return float(data['OnlineBalance'])
 
         if col == 'networth':
-            data = self._sd_data(f='Money.json') or {}
+            data = self._sd_data(f='Money.json')
             if data.get('Networth'):
                 return float(data['Networth'])
 
         if col == 'lifetimeearnings':
-            data = self._sd_data(f='Money.json') or {}
+            data = self._sd_data(f='Money.json')
             if data.get('LifetimeEarnings'):
                 return float(data['LifetimeEarnings'])
 
         if col == 'rank':
-            data = self._sd_data(f='Rank.json') or {}
+            data = self._sd_data(f='Rank.json')
             if data.get('Rank'):
                 return int(data['Rank'])
 
         if col == 'tier':
-            data = self._sd_data(f='Rank.json') or {}
+            data = self._sd_data(f='Rank.json')
             if data.get('Tier'):
                 return int(data['Tier'])
 
         if col == 'xp':
-            data = self._sd_data(f='Rank.json') or {}
+            data = self._sd_data(f='Rank.json')
             if data.get('XP'):
                 return int(data['XP'])
 
         if col == 'totalxp':
-            data = self._sd_data(f='Rank.json') or {}
+            data = self._sd_data(f='Rank.json')
             if data.get('TotalXP'):
                 return int(data['TotalXP'])
 
         if col == 'discoveredproducts':
-            data = self._sd_data(f='Products.json') or {}
+            data = self._sd_data(f='Products.json')
             if data.get('DiscoveredProducts'):
-                if type(data['DiscoveredProducts']):
-                    return len(data['DiscoveredProducts'])
+                # if type(data['DiscoveredProducts']) == list:
+                return len(data['DiscoveredProducts'])
 
         return None
 
 
-    def _sd_data(self, f: str) -> dict|None:
+    def _sd_data(self, f: str) -> dict:
         if self.sd_cache.get(f):
+            # display_msg(msg=f"< {f} (cached)", timestamp=True)
             return self.sd_cache[f]
 
         file = self.save_dir.joinpath(f)
 
         if not file.is_file():
-            return None
+            return {}
 
         time.sleep(SD_FILE_READ_THROTTLE)
 
         try:
+            # display_msg(msg=f"< {f} (fresh)", timestamp=True)
+
             data: dict = json.loads(s=file.read_text())
             self.sd_cache[f] = data
 
         except json.JSONDecodeError as e:
             display_msg(msg=f"[BOO] failed to load `{f}`: {e}")
-            return None
+            return {}
 
         if not data:
-            return None
+            return {}
 
         return data
 
@@ -529,6 +599,14 @@ class Hylandbook:
                 display_msg(msg=f"[BOO] could not create data_dir: {self.data_dir}")
                 return False
 
+        txt_tpl_file: Path = self.data_dir.joinpath('current.txt.tpl')
+        if not txt_tpl_file.exists():
+            txt_tpl_file.write_text(data=DEFAULT_TXT_EXPORT_TPL.strip('\n'))
+
+        html_tpl_file: Path = self.data_dir.joinpath('current.html.tpl')
+        if not html_tpl_file.exists():
+            html_tpl_file.write_text(data=DEFAULT_HTML_EXPORT_TPL.strip('\n'))
+
         return True
 
 
@@ -550,12 +628,11 @@ class Hylandbook:
 
 
     def _export(self, current_profile_data: dict, current_log_data: dict, save_id: int) -> None:
-        # display_msg(msg=f"exporting data", timestamp=True)
-
         # prep current data
         current: dict = {
             'save': current_profile_data.copy(),
             'log': current_log_data.copy(),
+            '_t': datetime.datetime.now().strftime('%H:%M:%S'),
         }
         current['save']['save_dir'] = Path(current['save']['save_dir']).name
         tpl_values: dict = {
@@ -571,8 +648,6 @@ class Hylandbook:
         # current txt
         file: Path = self.data_dir.joinpath('current.txt')
         tpl_file: Path = self.data_dir.joinpath('current.txt.tpl')
-        if not tpl_file.exists():
-            tpl_file.write_text(data=TXT_EXPORT_TPL.strip('\n'))
         content: str = tpl_file.read_text()
         for k, v in tpl_values.items():
             content = content.replace(f'{{{k}}}', str(v))
@@ -581,8 +656,6 @@ class Hylandbook:
         # current html
         file: Path = self.data_dir.joinpath('current.html')
         tpl_file: Path = self.data_dir.joinpath('current.html.tpl')
-        if not tpl_file.exists():
-            tpl_file.write_text(data=HTML_EXPORT_TPL.strip('\n'))
         content: str = tpl_file.read_text()
         for k, v in tpl_values.items():
             content = content.replace(f'{{{k}}}', str(v))
@@ -607,8 +680,7 @@ class Hylandbook:
         file: Path = self.data_dir.joinpath(f'history-{save_id}.json')
         file.write_text(data=json.dumps(obj=history, indent=4))
 
-        # history csv
-        # does not contain data profile
+        # history csv (does not contain data profile)
         file: Path = self.data_dir.joinpath(f'history-{save_id}.csv')
         with open(file=file, mode='w', newline='') as f:
             writer = csv.writer(f)
@@ -628,5 +700,7 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"\n[BOO] {e}")
         input("press any key to exit")
+        sys.exit(10)
     except KeyboardInterrupt:
         print("\nexiting")
+        sys.exit(0)
