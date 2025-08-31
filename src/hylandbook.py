@@ -2,8 +2,8 @@
 HYLANDBOOK
 
 Log your Schedule I progress.
-SAVEGAME_PATH is required, optional arguments will use their defaults if not set by you.
-PATH for --data-dir must not exist before you start the tool, but you will be asked for confirmation before it gets created automatically.
+The main thing this tool does is logging save game data to a local SQLite database.
+It also generates some additional data files you can use for various things, for example the .html file as streaming overlay, or the .csv to create charts in a spreadsheet app.
 
 I last tested this on game version 0.4.0f5.
 '''
@@ -315,15 +315,10 @@ class Hylandbook:
         display_msg(msg=BANNER, end="\n\n")
 
         self.Argparser = argparse.ArgumentParser(**ARGPARSER_CONF['init'])
-
         for v in ARGPARSER_CONF['args']:
-            self.Argparser.add_argument(
-                *v['name_or_flags'],
-                **v['conf'],
-            )
+            self.Argparser.add_argument(*v['name_or_flags'], **v['conf'])
 
         self.args = self.Argparser.parse_args()
-
         self.args.check_interval = max(MIN_CHECK_INTERVAL, self.args.check_interval)
 
         if not self._init_fs():
@@ -344,7 +339,7 @@ class Hylandbook:
             display_msg(msg="loading save data profile")
 
             sd_profile: dict = {
-                'save_dir': str(self.save_dir),
+                'save_dir': str(self.save_dir.name),
                 'organisation': self._sd(col='organisation'),
                 'seed': self._sd(col='seed'),
             }
@@ -398,9 +393,6 @@ class Hylandbook:
 
             if input("start monitoring? [y/n]: ").strip().lower() != 'y':
                 return
-
-            # clear_display()
-            # display_msg(msg=BANNER, end="\n\n")
 
             while True:
                 clear_display()
@@ -544,7 +536,6 @@ class Hylandbook:
         if col == 'discoveredproducts':
             data = self._sd_data(f='Products.json')
             if data.get('DiscoveredProducts'):
-                # if type(data['DiscoveredProducts']) == list:
                 return len(data['DiscoveredProducts'])
 
         return None
@@ -552,22 +543,19 @@ class Hylandbook:
 
     def _sd_data(self, f: str) -> dict:
         if self.sd_cache.get(f):
-            # display_msg(msg=f"< {f} (cached)", timestamp=True)
             return self.sd_cache[f]
 
-        file = self.save_dir.joinpath(f)
+        file: Path = self.save_dir.joinpath(f)
 
         if not file.is_file():
             return {}
 
-        time.sleep(SD_FILE_READ_THROTTLE)
+        if SD_FILE_READ_THROTTLE > 0:
+            time.sleep(SD_FILE_READ_THROTTLE)
 
         try:
-            # display_msg(msg=f"< {f} (fresh)", timestamp=True)
-
             data: dict = json.loads(s=file.read_text())
             self.sd_cache[f] = data
-
         except json.JSONDecodeError as e:
             display_msg(msg=f"[BOO] failed to load `{f}`: {e}")
             return {}
@@ -613,6 +601,7 @@ class Hylandbook:
     def _init_db(self) -> bool:
         if not self.db_file.exists():
             con, cur = self.Database.connect()
+
             try:
                 cur.executescript(DB_SCHEMA)
             except:
@@ -620,9 +609,6 @@ class Hylandbook:
                 return False
             finally:
                 con.close()
-
-
-        # raise Exception('test ing')
 
         return True
 
@@ -643,7 +629,7 @@ class Hylandbook:
 
         # current json
         file: Path = self.data_dir.joinpath('current.json')
-        file.write_text(data=json.dumps(obj=current, indent=4))
+        file.write_text(data=json.dumps(obj=current))
 
         # current txt
         file: Path = self.data_dir.joinpath('current.txt')
@@ -674,11 +660,10 @@ class Hylandbook:
             'save': current_profile_data.copy(),
             'log': [dict(zip(history_cols, row)) for row in history_rows],
         }
-        history['save']['save_dir'] = Path(history['save']['save_dir']).name
 
         # history json
         file: Path = self.data_dir.joinpath(f'history-{save_id}.json')
-        file.write_text(data=json.dumps(obj=history, indent=4))
+        file.write_text(data=json.dumps(obj=history))
 
         # history csv (does not contain data profile)
         file: Path = self.data_dir.joinpath(f'history-{save_id}.csv')
