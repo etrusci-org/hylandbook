@@ -6,12 +6,12 @@ pyinstaller ^
     --distpath "./dist" ^
     --workpath "./.build" ^
     --specpath "./.build" ^
-    --icon "../src/app.ico" ^
+    --icon "../hylandbook/app.ico" ^
     --name hylandbook ^
     --console ^
     --clean ^
     --onefile ^
-    "./src/hylandbook.py"
+    "./hylandbook/__main__.py"
 
 certutil ^
     -hashfile "./dist/hylandbook.exe" ^
