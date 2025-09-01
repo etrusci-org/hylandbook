@@ -3,7 +3,8 @@
 **Tool and documentation still work in progress!**
 
 Log your Schedule I progress.  
-The main thing this tool does is logging save game data to a local SQLite database. It also generates some additional data files you can use for various things, for example the .html file as streaming overlay, or the .csv to create charts in a spreadsheet app.
+The main thing this tool does is logging save game data to a local SQLite database.  
+It also generates some additional data files you can use for various things, for example the .html file as streaming overlay, or the .csv to create charts in a spreadsheet app.
 
 I last tested this on game version 0.4.0f5.  
 
