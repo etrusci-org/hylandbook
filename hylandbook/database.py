@@ -14,7 +14,11 @@ class DatabaseSQLite:
 
     def connect(self) -> tuple[sqlite3.Connection, sqlite3.Cursor]:
         con = sqlite3.connect(database=self.file)
+
+        # con.row_factory = sqlite3.Row
+
         cur = con.cursor()
+
         return (con, cur)
 
 

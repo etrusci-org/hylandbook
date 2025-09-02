@@ -13,35 +13,53 @@ from hylandbook import display
 
 
 
-class HylandbookExporter:
-    Database: hylandbook.database.DatabaseSQLite
-    data_dir: Path
-    sd_id: int | None = None
+# class HylandbookExporter:
+#     Database: hylandbook.database.DatabaseSQLite
+#     data_dir: Path
+#     # sd_id: int | None = None
 
 
-    def __init__(self, db: hylandbook.database.DatabaseSQLite, data_dir: Path) -> None:
-        self.Database = db
+#     def __init__(self, db: hylandbook.database.DatabaseSQLite, data_dir: Path) -> None:
+#         self.Database = db
 
 
-    def update_exports(self, sd_id: int | None) -> None:
-        if not sd_id:
-            return
+#     def update_exports(self, sd_id: int | None) -> None:
+#         if not sd_id:
+#             return
 
-        con, cur = self.Database.connect()
+#         con, cur = self.Database.connect()
 
-        try:
-            print('update_current', sd_id)
-            print('update_history', sd_id)
+#         try:
+#             print('update_current', sd_id)
 
-        finally:
-            con.close()
+#             try:
+#                 dump: sqlite3.Cursor = cur.execute(
+#                     '''
+#                     SELECT * FROM logs
+#                     WHERE save_id = :save_id
+#                     ORDER BY log_id DESC
+#                     LIMIT 1;
+#                     ''',
+#                     {'save_id': sd_id}
+#                 )
+#                 latest = dump.fetchone()
+#                 print(latest)
+#             finally:
+#                 con.close()
+
+
+
+#             # print('update_history', sd_id)
+
+#         finally:
+#             con.close()
 
 
 
 
 class Hylandbook:
     Database: hylandbook.database.DatabaseSQLite
-    Exporter: HylandbookExporter
+    # Exporter: HylandbookExporter
 
     args: dict
 
@@ -74,7 +92,7 @@ class Hylandbook:
             input("\npress [Enter] to exit")
             sys.exit(2)
 
-        self.Exporter = HylandbookExporter(db=self.Database, data_dir=self.data_dir)
+        # self.Exporter = HylandbookExporter(db=self.Database, data_dir=self.data_dir)
 
 
     def main(self) -> None:
@@ -83,6 +101,18 @@ class Hylandbook:
 
         if not self._init_sd_profile():
             display.msg("[BOO] failed to initialize sd_profile")
+            return
+
+        # self.Exporter.update_exports(sd_id=self.sd_id)
+
+        display.msg(f"    save directory: {self.save_dir}", start="\n")
+        display.msg(f"    data directory: {self.data_dir}")
+        display.msg(f"           save id: {self.sd_id}")
+        display.msg(f"      organisation: {self.sd_org}")
+
+        display.msg("to quit this tool while it is running, type [CTRL]+[C] or close this window", start="\n", end="\n\n")
+
+        if input("start monitoring? [y/n]: ").strip().lower() != 'y':
             return
 
         self._log_sd_changes()
@@ -287,16 +317,16 @@ class Hylandbook:
 
             self.sd_org = sd_profile['organisation']
 
-            display.msg(f"    save directory: {self.save_dir}", start="\n")
-            display.msg(f"    data directory: {self.data_dir}")
-            display.msg(f"           save id: {self.sd_id}")
-            display.msg(f"      organisation: {self.sd_org}")
-            display.msg(f"              seed: {sd_profile['seed']}", end="\n\n")
+            # display.msg(f"    save directory: {self.save_dir}", start="\n")
+            # display.msg(f"    data directory: {self.data_dir}")
+            # display.msg(f"           save id: {self.sd_id}")
+            # display.msg(f"      organisation: {self.sd_org}")
+            # display.msg(f"              seed: {sd_profile['seed']}", end="\n\n")
 
-            display.msg("to quit this tool while it is running, type CTRL+C or close this window", end="\n\n")
+            # display.msg("to quit this tool while it is running, type [CTRL]+[C] or close this window", end="\n\n")
 
-            if input("start monitoring? [y/n]: ").strip().lower() != 'y':
-                return False
+            # if input("start monitoring? [y/n]: ").strip().lower() != 'y':
+            #     return False
 
             return True
 
@@ -370,8 +400,6 @@ class Hylandbook:
                         }
                     )
                     con.commit()
-
-                self.Exporter.update_exports(sd_id=self.sd_id)
 
                 display.msg()
                 summary_indent: int = max([len(k) for k in sd_log]) + 4
