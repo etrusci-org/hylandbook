@@ -1,6 +1,0 @@
-Todo & Ideas in no particular order:
-
-- use watchdog instead of polling
-- refactor stuff, expecially the export part
-- export history html so one create charts (history as json embeded inside html so it can be used from the local filesystem)
-- let save_dir be defined tru cli args or a txt that is in the same dir as the dist/exe
