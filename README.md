@@ -1,5 +1,5 @@
 # HYLANDBOOK
-> last tested on game version 0.4.0f5
+> last tested on game version 0.4.0f5  
 > *tool and documentation still work in progress!*
 
 Log your Schedule I progress to a local SQLite database.
@@ -26,7 +26,7 @@ Currently the following save data values are collected:
 
 **Users**:  
 None if you use the [pre-built executables](./dist).  
-If you want to run it directly from the [source](./src), [Python](https://python.org) is needed.
+If you want to run it directly from the [source](./hylandbook), [Python](https://python.org) is needed. To run it from the source: `python -m hylandbook`
 
 **Developers**:  
 To install the development dependencies (optimally in a virtual Python environment), run [install_pyreq.cmd](./install_pyreq.cmd).  
