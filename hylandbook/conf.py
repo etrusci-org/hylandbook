@@ -16,10 +16,38 @@ class Conf:
 
     sd_file_read_throttle: float = 0
 
+    default_export_types: list[str] =  ['disabled']
+    export_types_choices: list[str] = [
+        'json',
+        'txt',
+    ]
+
+    default_export_keys: list[str] = ['all']
+    export_keys_choices: list[str] = [
+        '_t',
+        'save_dir',
+        'organisation',
+        'seed',
+        'save_id',
+        'gameversion',
+        'playtime',
+        'elapseddays',
+        'onlinebalance',
+        'networth',
+        'lifetimeearnings',
+        'rank',
+        'tier',
+        'xp',
+        'totalxp',
+        'discoveredproducts',
+        'ownedvehicles',
+    ]
+
     argparser: dict = {
         'init': {
             'prog': app_name,
-            'description': "See the README for more.",
+            'description': "SAVEGAME_PATH is required, options are optional and will use their defaults if not set by you. For more help see the README.",
+            'epilog': 'Cool links: scheduleonegame.com, github.com/etrusci-org/hylandbook',
         },
         'args': [
             {
@@ -46,7 +74,29 @@ class Conf:
                     'metavar': 'PATH',
                     'type': str,
                     'default': default_data_dir,
-                    'help': f"path to directory where {app_name} will store data, default: {default_data_dir}",
+                    'help': f"path to directory where {app_name} will store data, will be created automatically if it does not exist yet, default: {default_data_dir}",
+                },
+            },
+            {
+                'name_or_flags': ['-t', '--export-types'],
+                'setup': {
+                    'metavar': 'TYPES',
+                    'type': str,
+                    'nargs': '*',
+                    'choices': export_types_choices,
+                    'default': default_export_types,
+                    'help': f"types of additional export files to create each time save data changes are detected, default: {' '.join(default_export_types)}, choices: {' '.join(export_types_choices)}",
+                },
+            },
+            {
+                'name_or_flags': ['-k', '--export-keys'],
+                'setup': {
+                    'metavar': 'KEYS',
+                    'type': str,
+                    'nargs': '*',
+                    'choices': export_keys_choices,
+                    'default': default_export_keys,
+                    'help': f"value keys of data to export, default: {' '.join(default_export_keys)}, choices: {' '.join(export_keys_choices)}",
                 },
             },
         ],

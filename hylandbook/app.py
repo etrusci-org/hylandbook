@@ -47,6 +47,7 @@ class App:
 
         self.args = self.Argparser.parse()
         self.args['check_interval'] = max(Conf.min_check_interval, self.args['check_interval'])
+        print(self.args)
 
         if not self._init_fs():
             return
@@ -54,19 +55,19 @@ class App:
         if not self._init_db():
             return
 
-        Screen.msg("loading save data profile ...")
-
         if not self._init_sd_profile():
             return
+
+        Screen.msg(f" save game data directory: {self.save_dir}", start="\n")
+        Screen.msg(f"{Conf.app_name} data directory: {self.data_dir}")
+        Screen.msg(f"             organisation: {self.sd_profile['organisation']}", end="\n\n")
+
+        Screen.msg("to quit at any time, type [CTRL]+[C] or close this window", end="\n\n")
 
         if input("start monitoring? [y/n]: ").strip().lower() != 'y':
             return
 
         self._monitor_sd()
-
-
-
-
 
 
     def _init_fs(self) -> bool:
@@ -79,14 +80,13 @@ class App:
             return False
 
         if not self.data_dir.exists():
-            Screen.msg(f"data_dir does not exist yet: {self.data_dir}")
-
-            if input("create it now? [y/n]: ").strip().lower() != 'y':
-                return False
-
+            # Screen.msg(f"data_dir does not exist yet: {self.data_dir}")
+            # if input("create it now? [y/n]: ").strip().lower() != 'y':
+            #     return False
             self.data_dir.mkdir()
 
             if not self.data_dir.exists():
+                Screen.msg(f"[BOO] failed to create data_dir: {self.data_dir}")
                 return False
 
         return True
@@ -110,10 +110,9 @@ class App:
         return True
 
 
-
-
-
     def _init_sd_profile(self) -> bool:
+        Screen.msg("loading save data profile ...")
+
         con, cur = self.Database.connect()
 
         try:
@@ -162,13 +161,13 @@ class App:
                 Screen.msg("new save profile created")
             else:
                 self.sd_profile['save_id'] = existing_profile['save_id']
+                Screen.msg("existing save profile found")
 
             if not self.sd_profile.get('save_id'):
                 Screen.msg("[BOO] failed to get save_id")
                 return False
 
-            Screen.msg(f"save profile loaded: {self.sd_profile}")
-
+            # Screen.msg(f"save profile loaded")
         finally:
             con.close()
 
@@ -235,8 +234,10 @@ class App:
                     )
                     con.commit()
 
+                    self._export()
+
                 Screen.msg()
-                self._print_check_diff(previous=previous, current=current)
+                self._print_monitor_summary(previous=previous, current=current)
                 Screen.msg()
 
                 Screen.msg("next check in", sleep=self.args['check_interval'])
@@ -244,20 +245,16 @@ class App:
             con.close()
 
 
-    def _print_check_diff(self, previous: dict, current: dict):
-        indent: int = max([len(k) for k in current]) + 4
+    def _print_monitor_summary(self, previous: dict, current: dict):
+        indent: int = max([len(k) for k in current])
 
+        Screen.msg(f"{'organisation':>{indent}}  {self.sd_profile['organisation']}")
         for k, v in current.items():
             Screen.msg(f"{k:>{indent}}", end='  ')
-
             if k in previous.keys() and previous.get(k) != v:
                 Screen.msg(f"{previous[k]} -> {v}")
             else:
                 Screen.msg(f"{v}")
-
-
-
-
 
 
     def _sd(self, col: str, /) -> str | int | float | None:
@@ -388,3 +385,69 @@ class App:
             return {}
 
         return data
+
+
+    def _export(self, keys: list[str] = ['all']) -> None:
+        if 'disabled' in self.args['export_types']:
+            return
+
+        current_data: dict = {
+            '_t': time.time(),
+            **self.sd_profile,
+            **self.sd_log,
+        }
+
+        file: Path | None = None
+        data: str | None = None
+
+        for t in self.args['export_types']:
+            if t == 'json':
+                file = self.data_dir.joinpath('current.json')
+                if 'all' in self.args['export_keys']:
+                    data = json.dumps(obj=current_data, indent=4)
+                else:
+                    dump: dict = {}
+                    for k in self.args['export_keys']:
+                        if current_data.get(k):
+                            dump[k] = current_data[k]
+                    data = json.dumps(obj=dump, indent=4)
+
+            if t == 'txt':
+                file = self.data_dir.joinpath('current.txt')
+                indent: int = 0
+                if 'all' in self.args['export_keys']:
+                    indent = max([len(k) for k in current_data])
+                    data = '\n'.join([f"{k:>{indent}}  {v}" for k, v in current_data.items()])
+                else:
+                    dump: dict = {}
+                    for k in self.args['export_keys']:
+                        if current_data.get(k):
+                            dump[k] = current_data[k]
+                    indent = max([len(k) for k in dump])
+                    data = '\n'.join([f"{k:>{indent}}  {v}" for k, v in dump.items()])
+
+            if file and data:
+                file.write_text(data)
+
+
+
+
+
+        # # history test
+        # con, cur = self.Database.connect()
+        # try:
+        #     r: sqlite3.Cursor = cur.execute(
+        #         '''
+        #         SELECT *
+        #         FROM logs
+        #         WHERE save_id = :save_id
+        #         ORDER BY log_id DESC
+        #         LIMIT 100;
+        #         ''',
+        #         self.sd_profile
+        #     )
+        #     dump: list[sqlite3.Row] | None = r.fetchall()
+        #     for row in dump:
+        #         print(type(row), dict(row))
+        # finally:
+        #     con.close()
