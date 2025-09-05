@@ -16,7 +16,7 @@ class Conf:
 
     sd_file_read_throttle: float = 0
 
-    default_export_types: list[str] =  ['disabled']
+    default_export_types: list[str] =  []
     export_types_choices: list[str] = [
         'json',
         'txt',
@@ -31,6 +31,7 @@ class Conf:
         'save_id',
         'gameversion',
         'playtime',
+        'timeofday',
         'elapseddays',
         'onlinebalance',
         'networth',
@@ -74,18 +75,18 @@ class Conf:
                     'metavar': 'PATH',
                     'type': str,
                     'default': default_data_dir,
-                    'help': f"path to directory where {app_name} will store data, will be created automatically if it does not exist yet, default: {default_data_dir}",
+                    'help': f"path to directory where {app_name} will store data, will be created automatically if it does not exist yet, default: <current directory from where you run hylandbook>\\hb_data, current: {default_data_dir}",
                 },
             },
             {
-                'name_or_flags': ['-t', '--export-types'],
+                'name_or_flags': ['-e', '--export-types'],
                 'setup': {
                     'metavar': 'TYPES',
                     'type': str,
                     'nargs': '*',
                     'choices': export_types_choices,
                     'default': default_export_types,
-                    'help': f"types of additional export files to create each time save data changes are detected, default: {' '.join(default_export_types)}, choices: {' '.join(export_types_choices)}",
+                    'help': f"types of additional export files to create each time save data changes are detected, default: no export, choices: {' '.join(export_types_choices)}",
                 },
             },
             {
@@ -123,6 +124,7 @@ class Conf:
 
             'gameversion' TEXT DEFAULT NULL,
             'playtime' INTEGER DEFAULT NULL,
+            'timeofday' INTEGER DEFAULT NULL,
             'elapseddays' INTEGER DEFAULT NULL,
             'onlinebalance' REAL DEFAULT NULL,
             'networth' REAL DEFAULT NULL,

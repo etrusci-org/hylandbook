@@ -47,7 +47,6 @@ class App:
 
         self.args = self.Argparser.parse()
         self.args['check_interval'] = max(Conf.min_check_interval, self.args['check_interval'])
-        print(self.args)
 
         if not self._init_fs():
             return
@@ -58,9 +57,9 @@ class App:
         if not self._init_sd_profile():
             return
 
-        Screen.msg(f" save game data directory: {self.save_dir}", start="\n")
-        Screen.msg(f"{Conf.app_name} data directory: {self.data_dir}")
-        Screen.msg(f"             organisation: {self.sd_profile['organisation']}", end="\n\n")
+        Screen.msg(f"save directory: {self.save_dir}", start="\n")
+        Screen.msg(f"data directory: {self.data_dir}")
+        Screen.msg(f"  organisation: {self.sd_profile['organisation']}", end="\n\n")
 
         Screen.msg("to quit at any time, type [CTRL]+[C] or close this window", end="\n\n")
 
@@ -188,6 +187,7 @@ class App:
 
                 self.sd_log['gameversion'] = self._sd('gameversion')  # do not use for comparsion
                 self.sd_log['playtime'] = self._sd('playtime')  # do not use for comparsion
+                self.sd_log['timeofday'] = self._sd('timeofday')  # do not use for comparsion
                 self.sd_log['elapseddays'] = self._sd('elapseddays')
                 self.sd_log['onlinebalance'] = self._sd('onlinebalance')
                 self.sd_log['networth'] = self._sd('networth')
@@ -216,6 +216,7 @@ class App:
                 current: dict = self.sd_log.copy()
                 del current['gameversion']
                 del current['playtime']
+                del current['timeofday']
 
                 if dict(previous or {}) == current:
                     Screen.msg("no changes detected", ts=True)
@@ -223,8 +224,8 @@ class App:
                     Screen.msg("changes detected", ts=True)
                     cur.execute(
                         '''
-                        INSERT INTO logs (log_time, save_id, gameversion, playtime, elapseddays, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedvehicles)
-                        VALUES (:log_time, :save_id, :gameversion, :playtime, :elapseddays, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts, :ownedvehicles);
+                        INSERT INTO logs (log_time, save_id, gameversion, playtime, timeofday, elapseddays, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedvehicles)
+                        VALUES (:log_time, :save_id, :gameversion, :playtime, :timeofday, :elapseddays, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts, :ownedvehicles);
                         ''',
                         {
                             'log_time': time.time(),
@@ -237,7 +238,7 @@ class App:
                     self._export()
 
                 Screen.msg()
-                self._print_monitor_summary(previous=previous, current=current)
+                self._print_monitor_summary(previous=previous)
                 Screen.msg()
 
                 Screen.msg("next check in", sleep=self.args['check_interval'])
@@ -245,11 +246,11 @@ class App:
             con.close()
 
 
-    def _print_monitor_summary(self, previous: dict, current: dict):
-        indent: int = max([len(k) for k in current])
+    def _print_monitor_summary(self, previous: dict):
+        indent: int = max([len(k) for k in self.sd_log])
 
         Screen.msg(f"{'organisation':>{indent}}  {self.sd_profile['organisation']}")
-        for k, v in current.items():
+        for k, v in self.sd_log.items():
             Screen.msg(f"{k:>{indent}}", end='  ')
             if k in previous.keys() and previous.get(k) != v:
                 Screen.msg(f"{previous[k]} -> {v}")
@@ -262,6 +263,7 @@ class App:
         default_seed: int = 0
         default_gameversion: str = ''
         default_playtime: int = 0
+        default_timeofday: int = 0
         default_elapseddays: int = 0
         default_onlinebalance: float = 0
         default_networth: float = 0
@@ -298,6 +300,12 @@ class App:
             if not data.get('Playtime'):
                 return default_playtime
             return int(data['Playtime'])
+
+        if col == 'timeofday':
+            data = self._sd_data('Time.json')
+            if not data.get('TimeOfDay'):
+                return default_timeofday
+            return int(data['TimeOfDay'])
 
         if col == 'elapseddays':
             data = self._sd_data('Time.json')
@@ -387,8 +395,8 @@ class App:
         return data
 
 
-    def _export(self, keys: list[str] = ['all']) -> None:
-        if 'disabled' in self.args['export_types']:
+    def _export(self) -> None:
+        if len(self.args['export_types']) == 0:
             return
 
         current_data: dict = {
