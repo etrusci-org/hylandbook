@@ -5,29 +5,51 @@
 Log your Schedule I progress to a local SQLite database.
 
 Currently the following save data values are collected:
-- Save data directory name
-- OrganisationName
-- Seed
-- GameVersion
-- Playtime
-- ElapsedDays
-- OnlineBalance
-- Networth
-- LifetimeEarnings
-- Rank
-- Tier
-- XP
-- TotalXP
-- DiscoveredProducts *(count)*
-- Vehicles *(count)*
+- save data directory name
+- organisation name
+- seed
+- game version
+- playtime
+- time of day
+- elapsed days
+- online balance
+- networth
+- lifetime earnings
+- rank
+- tier
+- xp
+- total xp
+- discovered products *(count)*
+- owned vehicles *(count)*
 
 
-## Dependecies
+
+
+## Requirements
+
+- [Schedule I](https://scheduleonegame.com)
+- [Windows 10+ (64-bit)](https://www.microsoft.com/en-us/software-download/)
+
+additionally...
 
 **Users**:  
-None if you use the [pre-built executables](./dist).  
-If you want to run it directly from the [source](./hylandbook), [Python](https://python.org) is needed. To run it from the source: `python -m hylandbook`
+None if you use the [pre-built executable](./dist).  
+If you want to run it directly from the [source](./hylandbook), [Python](https://python.org) is needed.  
+To run it from the source: `python -m hylandbook`
 
 **Developers**:  
-To install the development dependencies (optimally in a virtual Python environment), run [install_pyreq.cmd](./install_pyreq.cmd).  
+To install the development dependencies, run [install_pyreq.cmd](./install_pyreq.cmd).  
 To build the executable, run [bakedist.cmd](./bakedist.cmd).
+
+
+## Installation
+
+1. Download the executable from the latest release.
+   Save it anywhere you like but not in system directories (e.g. Programs), since they need special permissions to access.
+2. ...
+
+
+
+## License
+
+HYLANDBOOK is licensed under **TODO - better not make it public domain for safety (executables on other sites)**
