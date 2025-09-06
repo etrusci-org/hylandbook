@@ -49,12 +49,15 @@ class App:
         self.args['check_interval'] = max(Conf.min_check_interval, self.args['check_interval'])
 
         if not self._init_fs():
+            Screen.prompt_to_exit(1)
             return
 
         if not self._init_db():
+            Screen.prompt_to_exit(2)
             return
 
         if not self._init_sd_profile():
+            Screen.prompt_to_exit(3)
             return
 
         Screen.msg(f"save directory: {self.save_dir}", start="\n")

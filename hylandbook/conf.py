@@ -12,7 +12,7 @@ class Conf:
     db_file_name: str = 'book.db'
 
     default_check_interval: int = 60
-    min_check_interval: int = 5
+    min_check_interval: int = 10
 
     sd_file_read_throttle: float = 0
 
@@ -70,15 +70,6 @@ class Conf:
                 },
             },
             {
-                'name_or_flags': ['-d', '--data-dir'],
-                'setup': {
-                    'metavar': 'PATH',
-                    'type': str,
-                    'default': default_data_dir,
-                    'help': f"path to directory where {app_name} will store data, will be created automatically if it does not exist yet, default: <current directory from where you run hylandbook>\\hb_data, current: {default_data_dir}",
-                },
-            },
-            {
                 'name_or_flags': ['-e', '--export-types'],
                 'setup': {
                     'metavar': 'TYPES',
@@ -98,6 +89,15 @@ class Conf:
                     'choices': export_keys_choices,
                     'default': default_export_keys,
                     'help': f"value keys of data to export, default: {' '.join(default_export_keys)}, choices: {' '.join(export_keys_choices)}",
+                },
+            },
+            {
+                'name_or_flags': ['-d', '--data-dir'],
+                'setup': {
+                    'metavar': 'PATH',
+                    'type': str,
+                    'default': default_data_dir,
+                    'help': f"path to directory where {app_name} will save data, will be created automatically if it does not exist yet, default: <current directory from where you run hylandbook>\\hb_data, current: {default_data_dir}",
                 },
             },
         ],

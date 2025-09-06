@@ -6,7 +6,7 @@ pyinstaller ^
     --distpath "./dist" ^
     --workpath "./.build" ^
     --specpath "./.build" ^
-    --icon "../hylandbook/app.ico" ^
+    --icon "../app.ico" ^
     --name hylandbook ^
     --console ^
     --clean ^
