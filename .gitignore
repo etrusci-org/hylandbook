@@ -1,1 +1,5 @@
+/.build/
+/.pyvenv/
 /0000/
+__pycache__/
+hb_data/
