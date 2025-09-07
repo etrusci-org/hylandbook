@@ -116,10 +116,11 @@ hylandbook.exe --help
 ## Even easier, run it with a shortcut
 
 To make things easier, I've included a ready-made script file. This lets you run the program with a double-click, without typing commands.
+You can find it alongside the [release files](https://github.com/etrusci-org/hylandbook/releases/latest) or [there](./dist/run_hylandbook.cmd).
 
-### 1. Locate the script
+### 1. Save the script
 
-Find the file `run_hylandook.cmd` in the same folder as `hylandbook.exe`.
+Save the file `run_hylandook.cmd` in the same folder as `hylandbook.exe`.
 
 ### 2. Edit the save game path
 
