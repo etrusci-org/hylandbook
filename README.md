@@ -26,6 +26,28 @@ Currently the following values from your save data are logged:
 - discovered products (count)
 - owned vehicles (count)
 
+---
+
+- [Requirements](#requirements)
+- [Installation + Usage](#installation--usage)
+  - [1. Download the program](#1-download-the-program)
+  - [2. Put it somewhere easy to find](#2-put-it-somewhere-easy-to-find)
+  - [3. Open a command window](#3-open-a-command-window)
+  - [4. Go to the folder where you saved it](#4-go-to-the-folder-where-you-saved-it)
+  - [5. Run the program](#5-run-the-program)
+  - [6. Stop it](#6-stop-it)
+  - [7. See all options](#7-see-all-options)
+- [Even easier, run it with a shortcut](#even-easier-run-it-with-a-shortcut)
+  - [1. Save the script](#1-save-the-script)
+  - [2. Edit the save game path](#2-edit-the-save-game-path)
+  - [3. Run it](#3-run-it)
+- [Where data is saved](#where-data-is-saved)
+- [Options](#options)
+- [Database schema](#database-schema)
+- [License](#license)
+
+---
+
 
 
 
