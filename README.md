@@ -1,9 +1,10 @@
 # --== [ H Y L A N D B O O K ]==--
 
 HYLANDBOOK watches your [Schedule I](https://scheduleonegame.com) save files and logs progress to a local [SQLite](https://sqlite.org) database.  
+It can also automatically create/update a JSON or plain text export whenever it detects changes in your save data - handy for showing live stats in [OBS Studio](https://obsproject.com), for example.  
 Works with multiple save games automatically - you don't need to manage separate data files yourself - just switch between saves in-game.
 
-It can also automatically create or update a JSON or plain text export whenever it detects changes in your save data - handy for showing live stats in [OBS Studio](https://obsproject.com), for example.
+[Demo video on YouTube](https://www.youtube.com/watch?v=KoYJrz9HlZ8)
 
 All save files are accessed read-only - nothing is ever modified.
 
