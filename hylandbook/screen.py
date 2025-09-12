@@ -30,7 +30,7 @@ class Screen:
             msg = f"{' ' * (level * level_indent)}{msg}"
 
         if ts:
-            msg = f"[{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {msg}"
+            msg = f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {msg}"
 
         if sleep <= 0:
             sys.stdout.write(f'{start}{msg}{end}')

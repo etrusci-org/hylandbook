@@ -27,6 +27,8 @@ class App:
     save_dir: Path
     data_dir: Path
     db_file: Path
+    json_export_file: Path
+    txt_export_file: Path
 
     sd_profile: dict = {}
     sd_log: dict = {}
@@ -76,20 +78,25 @@ class App:
         self.save_dir = Path(self.args['save_dir']).resolve()
         self.data_dir = Path(self.args['data_dir']).resolve()
         self.db_file = self.data_dir.joinpath(Conf.db_file_name)
+        self.json_export_file = self.data_dir.joinpath(Conf.json_export_file_name)
+        self.txt_export_file = self.data_dir.joinpath(Conf.txt_export_file_name)
 
         if not self.save_dir.exists() or not self.save_dir.is_dir():
             Screen.msg(f"save_dir does not exist or is not a directory: {self.save_dir}")
             return False
 
         if not self.data_dir.exists():
-            # Screen.msg(f"data_dir does not exist yet: {self.data_dir}")
-            # if input("create it now? [y/n]: ").strip().lower() != 'y':
-            #     return False
             self.data_dir.mkdir()
 
             if not self.data_dir.exists():
                 Screen.msg(f"[BOO] failed to create data_dir: {self.data_dir}")
                 return False
+
+        if not self.json_export_file.exists():
+            self.json_export_file.write_text('["NO DATA RECORDED YET"]')
+
+        if not self.txt_export_file.exists():
+            self.txt_export_file.write_text('NO DATA RECORDED YET')
 
         return True
 
@@ -192,6 +199,7 @@ class App:
                 self.sd_log['playtime'] = self._sd('playtime')  # do not use for comparsion
                 self.sd_log['timeofday'] = self._sd('timeofday')  # do not use for comparsion
                 self.sd_log['elapseddays'] = self._sd('elapseddays')
+                self.sd_log['cashbalance'] = self._sd('cashbalance')  # WIP
                 self.sd_log['onlinebalance'] = self._sd('onlinebalance')
                 self.sd_log['networth'] = self._sd('networth')
                 self.sd_log['lifetimeearnings'] = self._sd('lifetimeearnings')
@@ -200,11 +208,13 @@ class App:
                 self.sd_log['xp'] = self._sd('xp')
                 self.sd_log['totalxp'] = self._sd('totalxp')
                 self.sd_log['discoveredproducts'] = self._sd('discoveredproducts')
+                self.sd_log['ownedbusinesses'] = self._sd('ownedbusinesses')  # WIP
+                self.sd_log['ownedproperties'] = self._sd('ownedproperties')  # WIP
                 self.sd_log['ownedvehicles'] = self._sd('ownedvehicles')
 
                 r: sqlite3.Cursor = cur.execute(
                     '''
-                    SELECT elapseddays, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedvehicles
+                    SELECT elapseddays, cashbalance, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedbusinesses, ownedproperties, ownedvehicles
                     FROM logs
                     WHERE save_id = :save_id
                     ORDER BY log_id DESC
@@ -227,8 +237,8 @@ class App:
                     Screen.msg("changes detected", ts=True)
                     cur.execute(
                         '''
-                        INSERT INTO logs (log_time, save_id, gameversion, playtime, timeofday, elapseddays, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedvehicles)
-                        VALUES (:log_time, :save_id, :gameversion, :playtime, :timeofday, :elapseddays, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts, :ownedvehicles);
+                        INSERT INTO logs (log_time, save_id, gameversion, playtime, timeofday, elapseddays, cashbalance, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedbusinesses, ownedproperties, ownedvehicles)
+                        VALUES (:log_time, :save_id, :gameversion, :playtime, :timeofday, :elapseddays, :cashbalance, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts, :ownedbusinesses, :ownedproperties, :ownedvehicles);
                         ''',
                         {
                             'log_time': time.time(),
@@ -238,7 +248,8 @@ class App:
                     )
                     con.commit()
 
-                    self._export()
+                    self._export_current()
+                    # self._export_history()
 
                 Screen.msg()
                 self._print_monitor_summary(previous=previous)
@@ -268,6 +279,7 @@ class App:
         default_playtime: int = 0
         default_timeofday: int = 0
         default_elapseddays: int = 0
+        default_cashbalance: float = 0  # WIP
         default_onlinebalance: float = 0
         default_networth: float = 0
         default_lifetimeearnings: float = 0
@@ -276,6 +288,8 @@ class App:
         default_xp: int = 0
         default_totalxp: int = 0
         default_discoveredproducts: int = 0
+        default_ownedbusinesses: int = 0  # WIP
+        default_ownedproperties: int = 0  # WIP
         default_ownedvehicles: int = 0
 
         data: dict = {}
@@ -315,6 +329,21 @@ class App:
             if not data.get('ElapsedDays'):
                 return default_elapseddays
             return int(data['ElapsedDays'])
+
+        if col == 'cashbalance':
+            # WIP
+            data = self._sd_data('Players/Player_0/Inventory.json')
+
+            if not data.get('Items'):
+                return default_cashbalance
+
+            for item in data['Items']:
+                item_data = json.loads(s=item) or {}
+                if item_data.get('DataType') == 'CashData' and item_data.get('CashBalance'):
+                    return float(item_data['CashBalance'])
+
+            return default_cashbalance
+
 
         if col == 'onlinebalance':
             data = self._sd_data('Money.json')
@@ -370,6 +399,34 @@ class App:
                 return default_ownedvehicles
             return len(data['Vehicles'])
 
+        if col == 'ownedbusinesses':
+            # WIP
+            count: int | None = None
+            data_files = self.save_dir.glob('Businesses/*.json')
+            for file in data_files:
+                data = self._sd_data(f'Businesses/{file.name}')
+                if not data.get('IsOwned'):
+                    continue
+                if data['IsOwned']:
+                    count = 1 if not count else count + 1
+            if not count:
+                return default_ownedbusinesses
+            return count
+
+        if col == 'ownedproperties':
+            # WIP
+            count: int | None = None
+            data_files = self.save_dir.glob('Properties/*.json')
+            for file in data_files:
+                data = self._sd_data(f'Properties/{file.name}')
+                if not data.get('IsOwned'):
+                    continue
+                if data['IsOwned']:
+                    count = 1 if not count else count + 1
+            if not count:
+                return default_ownedproperties
+            return count
+
         return None
 
 
@@ -398,7 +455,7 @@ class App:
         return data
 
 
-    def _export(self) -> None:
+    def _export_current(self) -> None:
         if len(self.args['export_types']) == 0:
             return
 
@@ -413,7 +470,7 @@ class App:
 
         for t in self.args['export_types']:
             if t == 'json':
-                file = self.data_dir.joinpath('current.json')
+                file = self.json_export_file
                 if 'all' in self.args['export_keys']:
                     data = json.dumps(obj=current_data, indent=4)
                 else:
@@ -424,7 +481,7 @@ class App:
                     data = json.dumps(obj=dump, indent=4)
 
             if t == 'txt':
-                file = self.data_dir.joinpath('current.txt')
+                file = self.txt_export_file
                 indent: int = 0
                 if 'all' in self.args['export_keys']:
                     indent = max([len(k) for k in current_data])
@@ -441,10 +498,10 @@ class App:
                 file.write_text(data)
 
 
-
-
-
-        # # history test
+    def _export_history(self) -> None:
+        # TODO
+        pass
+        # # test
         # con, cur = self.Database.connect()
         # try:
         #     r: sqlite3.Cursor = cur.execute(
@@ -452,13 +509,19 @@ class App:
         #         SELECT *
         #         FROM logs
         #         WHERE save_id = :save_id
-        #         ORDER BY log_id DESC
+        #         ORDER BY log_id ASC
         #         LIMIT 100;
         #         ''',
         #         self.sd_profile
         #     )
         #     dump: list[sqlite3.Row] | None = r.fetchall()
+
+        #     charts_data: list = [
+        #         ['log_time', 'networth', 'onlinebalance'],
+        #     ]
+
         #     for row in dump:
-        #         print(type(row), dict(row))
+        #         charts_data.append([datetime.datetime.fromtimestamp(row['log_time']).strftime('%Y-%m-%d %H:%M:%S'), row['networth'], row['onlinebalance']])
+        #     print(charts_data)
         # finally:
         #     con.close()
