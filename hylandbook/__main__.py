@@ -8,3 +8,5 @@ try:
     App.main()
 except KeyboardInterrupt:
     pass
+except Exception as e:
+    print(f"\nsomething went wrong: {e}")

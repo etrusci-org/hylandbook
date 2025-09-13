@@ -11,12 +11,15 @@ class Conf:
 
     db_file_name: str = 'book.db'
 
+    json_export_file_name: str = 'current.json'
+    txt_export_file_name: str = 'current.txt'
+
     default_check_interval: int = 60
     min_check_interval: int = 10
 
     sd_file_read_throttle: float = 0
 
-    default_export_types: list[str] =  []
+    default_export_types: list[str] = []
     export_types_choices: list[str] = [
         'json',
         'txt',
@@ -33,6 +36,7 @@ class Conf:
         'playtime',
         'timeofday',
         'elapseddays',
+        'cashbalance',
         'onlinebalance',
         'networth',
         'lifetimeearnings',
@@ -41,6 +45,8 @@ class Conf:
         'xp',
         'totalxp',
         'discoveredproducts',
+        'ownedbusinesses',
+        'ownedproperties',
         'ownedvehicles',
     ]
 
@@ -126,6 +132,7 @@ class Conf:
             'playtime' INTEGER DEFAULT NULL,
             'timeofday' INTEGER DEFAULT NULL,
             'elapseddays' INTEGER DEFAULT NULL,
+            'cashbalance' REAL DEFAULT NULL,
             'onlinebalance' REAL DEFAULT NULL,
             'networth' REAL DEFAULT NULL,
             'lifetimeearnings' REAL DEFAULT NULL,
@@ -134,6 +141,8 @@ class Conf:
             'xp' INTEGER DEFAULT NULL,
             'totalxp' INTEGER DEFAULT NULL,
             'discoveredproducts' INTEGER DEFAULT NULL,
+            'ownedbusinesses' INTEGER DEFAULT NULL,
+            'ownedproperties' INTEGER DEFAULT NULL,
             'ownedvehicles' INTEGER DEFAULT NULL,
 
             PRIMARY KEY('log_id' AUTOINCREMENT),

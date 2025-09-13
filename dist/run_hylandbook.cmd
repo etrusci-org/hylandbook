@@ -1,7 +1,7 @@
 .\hylandbook.exe ^
     "PATH_TO_SAVEGAME_FOLDER_HERE" ^
     -e txt ^
-    -k organisation networth lifetimeearnings discoveredproducts ownedvehicles rank tier elapseddays
+    -k organisation cashbalance onlinebalance networth lifetimeearnings discoveredproducts ownedvehicles rank tier elapseddays
 
 
 
@@ -10,3 +10,5 @@
 
 :: To add another option on a new line, end the previous line with ^
 :: and indent the next line 4 spaces.
+
+:: To see all options add --help.
