@@ -214,7 +214,7 @@ class App:
 
                 r: sqlite3.Cursor = cur.execute(
                     '''
-                    SELECT xelapseddays, cashbalance, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedbusinesses, ownedproperties, ownedvehicles
+                    SELECT elapseddays, cashbalance, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedbusinesses, ownedproperties, ownedvehicles
                     FROM logs
                     WHERE save_id = :save_id
                     ORDER BY log_id DESC
