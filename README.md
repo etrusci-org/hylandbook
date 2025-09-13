@@ -17,6 +17,7 @@ Currently the following values from your save data are logged:
 - playtime
 - time of day
 - elapsed days
+- cashbalance
 - online balance
 - networth
 - lifetime earnings
@@ -25,6 +26,8 @@ Currently the following values from your save data are logged:
 - xp
 - total xp
 - discovered products (count)
+- ownedbusinesses (count)
+- ownedproperties (count)
 - owned vehicles (count)
 
 ---

@@ -19,7 +19,7 @@ class Conf:
 
     sd_file_read_throttle: float = 0
 
-    default_export_types: list[str] =  []
+    default_export_types: list[str] = []
     export_types_choices: list[str] = [
         'json',
         'txt',

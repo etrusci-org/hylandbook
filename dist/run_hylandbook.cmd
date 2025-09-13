@@ -10,3 +10,5 @@
 
 :: To add another option on a new line, end the previous line with ^
 :: and indent the next line 4 spaces.
+
+:: To see all options add --help.
