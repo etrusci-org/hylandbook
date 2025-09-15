@@ -234,24 +234,21 @@ Default: `<current working directory>\hb_data`
 ```sqlite
 CREATE TABLE 'saves' (
     'save_id' INTEGER NOT NULL,
-
     'save_dir' TEXT NOT NULL,
     'organisation' TEXT NOT NULL,
     'seed' INTEGER NOT NULL,
-
     PRIMARY KEY('save_id' AUTOINCREMENT)
 );
 
 CREATE TABLE 'logs' (
     'log_id' INTEGER NOT NULL,
-
     'log_time' REAL NOT NULL,
     'save_id' INTEGER NOT NULL,
-
     'gameversion' TEXT DEFAULT NULL,
     'playtime' INTEGER DEFAULT NULL,
     'timeofday' INTEGER DEFAULT NULL,
     'elapseddays' INTEGER DEFAULT NULL,
+    'cashbalance' REAL DEFAULT NULL,
     'onlinebalance' REAL DEFAULT NULL,
     'networth' REAL DEFAULT NULL,
     'lifetimeearnings' REAL DEFAULT NULL,
@@ -260,8 +257,9 @@ CREATE TABLE 'logs' (
     'xp' INTEGER DEFAULT NULL,
     'totalxp' INTEGER DEFAULT NULL,
     'discoveredproducts' INTEGER DEFAULT NULL,
+    'ownedbusinesses' INTEGER DEFAULT NULL,
+    'ownedproperties' INTEGER DEFAULT NULL,
     'ownedvehicles' INTEGER DEFAULT NULL,
-
     PRIMARY KEY('log_id' AUTOINCREMENT),
     FOREIGN KEY ('save_id') REFERENCES 'saves'('save_id')
 );

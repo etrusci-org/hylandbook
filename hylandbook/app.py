@@ -1,3 +1,4 @@
+import csv
 import json
 import sqlite3
 import sys
@@ -27,8 +28,8 @@ class App:
     save_dir: Path
     data_dir: Path
     db_file: Path
-    json_export_file: Path
-    txt_export_file: Path
+    current_json_export_file: Path
+    current_txt_export_file: Path
 
     sd_profile: dict = {}
     sd_log: dict = {}
@@ -49,6 +50,8 @@ class App:
 
         self.args = self.Argparser.parse()
         self.args['check_interval'] = max(Conf.min_check_interval, self.args['check_interval'])
+        self.args['history_limit'] = max(Conf.min_history_limit, self.args['history_limit']) if self.args['history_limit'] else None
+        print(self.args)
 
         if not self._init_fs():
             Screen.prompt_to_exit(1)
@@ -78,8 +81,8 @@ class App:
         self.save_dir = Path(self.args['save_dir']).resolve()
         self.data_dir = Path(self.args['data_dir']).resolve()
         self.db_file = self.data_dir.joinpath(Conf.db_file_name)
-        self.json_export_file = self.data_dir.joinpath(Conf.json_export_file_name)
-        self.txt_export_file = self.data_dir.joinpath(Conf.txt_export_file_name)
+        self.current_json_export_file = self.data_dir.joinpath(Conf.json_export_file_name)
+        self.current_txt_export_file = self.data_dir.joinpath(Conf.txt_export_file_name)
 
         if not self.save_dir.exists() or not self.save_dir.is_dir():
             Screen.msg(f"save_dir does not exist or is not a directory: {self.save_dir}")
@@ -92,11 +95,11 @@ class App:
                 Screen.msg(f"[BOO] failed to create data_dir: {self.data_dir}")
                 return False
 
-        if not self.json_export_file.exists():
-            self.json_export_file.write_text('["NO DATA RECORDED YET"]')
+        if not self.current_json_export_file.exists():
+            self.current_json_export_file.write_text(data=f'{{"_t": {time.time()}, "msg": "no data logged yet"}}')
 
-        if not self.txt_export_file.exists():
-            self.txt_export_file.write_text('NO DATA RECORDED YET')
+        if not self.current_txt_export_file.exists():
+            self.current_txt_export_file.write_text(data=f' _t  {time.time()}\nmsg  no data logged yet')
 
         return True
 
@@ -191,7 +194,7 @@ class App:
                 Screen.clear()
                 Screen.msg(Conf.app_banner, end="\n\n")
 
-                Screen.msg("parsing save game data ...", ts=True)
+                Screen.msg("reading save game data ...", ts=True)
 
                 self.sd_cache = {}
 
@@ -248,8 +251,14 @@ class App:
                     )
                     con.commit()
 
-                    self._export_current()
-                    # self._export_history()
+                    # Screen.msg(f"logged to {self.db_file.name}: saves.save_id {self.sd_profile['save_id']} logs.log_id {cur.lastrowid}", ts=True)
+
+                    # if len(self.args['export_types']) > 0:
+                    if len(self.args['export_current']) > 0:
+                        self._export_current()
+
+                    if len(self.args['export_history']) > 0:
+                        self._export_history(db_cur=cur)
 
                 Screen.msg()
                 self._print_monitor_summary(previous=previous)
@@ -261,97 +270,10 @@ class App:
                 con.close()
 
 
-
-
-        '''constantly opened db '''
-        # con, cur = self.Database.connect()
-
-        # try:
-        #     while True:
-        #         Screen.clear()
-        #         Screen.msg(Conf.app_banner, end="\n\n")
-
-        #         Screen.msg("parsing save game data ...", ts=True)
-
-        #         self.sd_cache = {}
-
-        #         self.sd_log['gameversion'] = self._sd('gameversion')  # do not use for comparsion
-        #         self.sd_log['playtime'] = self._sd('playtime')  # do not use for comparsion
-        #         self.sd_log['timeofday'] = self._sd('timeofday')  # do not use for comparsion
-        #         self.sd_log['elapseddays'] = self._sd('elapseddays')
-        #         self.sd_log['cashbalance'] = self._sd('cashbalance')  # WIP
-        #         self.sd_log['onlinebalance'] = self._sd('onlinebalance')
-        #         self.sd_log['networth'] = self._sd('networth')
-        #         self.sd_log['lifetimeearnings'] = self._sd('lifetimeearnings')
-        #         self.sd_log['rank'] = self._sd('rank')
-        #         self.sd_log['tier'] = self._sd('tier')
-        #         self.sd_log['xp'] = self._sd('xp')
-        #         self.sd_log['totalxp'] = self._sd('totalxp')
-        #         self.sd_log['discoveredproducts'] = self._sd('discoveredproducts')
-        #         self.sd_log['ownedbusinesses'] = self._sd('ownedbusinesses')  # WIP
-        #         self.sd_log['ownedproperties'] = self._sd('ownedproperties')  # WIP
-        #         self.sd_log['ownedvehicles'] = self._sd('ownedvehicles')
-
-        #         r: sqlite3.Cursor = cur.execute(
-        #             '''
-        #             SELECT elapseddays, cashbalance, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedbusinesses, ownedproperties, ownedvehicles
-        #             FROM logs
-        #             WHERE save_id = :save_id
-        #             ORDER BY log_id DESC
-        #             LIMIT 1;
-        #             ''',
-        #             self.sd_profile
-        #         )
-
-        #         dump: sqlite3.Row | None = r.fetchone()
-
-        #         previous: dict = dict(dump) if dump else {}
-        #         current: dict = self.sd_log.copy()
-        #         del current['gameversion']
-        #         del current['playtime']
-        #         del current['timeofday']
-
-        #         if dict(previous or {}) == current:
-        #             Screen.msg("no changes detected", ts=True)
-        #         else:
-        #             Screen.msg("changes detected", ts=True)
-        #             cur.execute(
-        #                 '''
-        #                 INSERT INTO logs (log_time, save_id, gameversion, playtime, timeofday, elapseddays, cashbalance, onlinebalance, networth, lifetimeearnings, rank, tier, xp, totalxp, discoveredproducts, ownedbusinesses, ownedproperties, ownedvehicles)
-        #                 VALUES (:log_time, :save_id, :gameversion, :playtime, :timeofday, :elapseddays, :cashbalance, :onlinebalance, :networth, :lifetimeearnings, :rank, :tier, :xp, :totalxp, :discoveredproducts, :ownedbusinesses, :ownedproperties, :ownedvehicles);
-        #                 ''',
-        #                 {
-        #                     'log_time': time.time(),
-        #                     **self.sd_profile,
-        #                     **self.sd_log,
-        #                 }
-        #             )
-        #             con.commit()
-
-        #             self._export_current()
-        #             # self._export_history()
-
-        #         Screen.msg()
-        #         self._print_monitor_summary(previous=previous)
-        #         Screen.msg()
-
-        #         Screen.msg("next check in", sleep=self.args['check_interval'])
-        # except Exception as e:
-        #     Screen.msg(f"something went wrong: {e}")
-        # finally:
-        #     con.close()
-
-
     def _print_monitor_summary(self, previous: dict):
         indent: int = max([len(k) for k in self.sd_log])
-
         Screen.msg(f"{'organisation':>{indent}}  {self.sd_profile['organisation']}")
         for k, v in self.sd_log.items():
-            # Screen.msg(f"{k:>{indent}}", end="  ")
-            # if k in previous.keys() and previous.get(k) != v:
-            #     Screen.msg(f"{previous[k]} -> {v}")
-            # else:
-            #     Screen.msg(f"{v}")
             Screen.msg(f"{k:>{indent}}", end="  ")
             if k in previous.keys() and previous.get(k) != v:
                 Screen.msg(f"{previous[k]} -> {v}", end=" ")
@@ -544,9 +466,6 @@ class App:
 
 
     def _export_current(self) -> None:
-        if len(self.args['export_types']) == 0:
-            return
-
         current_data: dict = {
             '_t': time.time(),
             **self.sd_profile,
@@ -556,60 +475,93 @@ class App:
         file: Path | None = None
         data: str | None = None
 
-        for t in self.args['export_types']:
-            if t == 'json':
-                file = self.json_export_file
-                if 'all' in self.args['export_keys']:
-                    data = json.dumps(obj=current_data, indent=4)
-                else:
-                    dump: dict = {}
-                    for k in self.args['export_keys']:
-                        if current_data.get(k):
-                            dump[k] = current_data[k]
-                    data = json.dumps(obj=dump, indent=4)
+        if 'json' in self.args['export_current']:
+            file = self.current_json_export_file
+            if 'all' in self.args['export_keys']:
+                data = json.dumps(obj=current_data, indent=4)
+            else:
+                dump: dict = {}
+                for k in self.args['export_keys']:
+                    if current_data.get(k):
+                        dump[k] = current_data[k]
+                data = json.dumps(obj=dump, indent=4)
 
-            if t == 'txt':
-                file = self.txt_export_file
-                indent: int = 0
-                if 'all' in self.args['export_keys']:
-                    indent = max([len(k) for k in current_data])
-                    data = '\n'.join([f"{k:>{indent}}  {v}" for k, v in current_data.items()])
-                else:
-                    dump: dict = {}
-                    for k in self.args['export_keys']:
-                        if current_data.get(k):
-                            dump[k] = current_data[k]
-                    indent = max([len(k) for k in dump])
-                    data = '\n'.join([f"{k:>{indent}}  {v}" for k, v in dump.items()])
+        if 'txt' in self.args['export_current']:
+            file = self.current_txt_export_file
+            indent: int = 0
+            if 'all' in self.args['export_keys']:
+                indent = max([len(k) for k in current_data])
+                data = '\n'.join([f"{k:>{indent}}  {v}" for k, v in current_data.items()])
+            else:
+                dump: dict = {}
+                for k in self.args['export_keys']:
+                    if current_data.get(k):
+                        dump[k] = current_data[k]
+                indent = max([len(k) for k in dump])
+                data = '\n'.join([f"{k:>{indent}}  {v}" for k, v in dump.items()])
 
             if file and data:
                 file.write_text(data)
 
 
-    def _export_history(self) -> None:
-        # TODO
-        pass
-        # # test
-        # con, cur = self.Database.connect()
-        # try:
-        #     r: sqlite3.Cursor = cur.execute(
-        #         '''
-        #         SELECT *
-        #         FROM logs
-        #         WHERE save_id = :save_id
-        #         ORDER BY log_id ASC
-        #         LIMIT 100;
-        #         ''',
-        #         self.sd_profile
-        #     )
-        #     dump: list[sqlite3.Row] | None = r.fetchall()
+    def _export_history(self, db_cur: sqlite3.Cursor) -> None:
+        # WIP
+        print('EXPORT HISTORY', self.args['export_history'])
 
-        #     charts_data: list = [
-        #         ['log_time', 'networth', 'onlinebalance'],
-        #     ]
+        query: str
 
-        #     for row in dump:
-        #         charts_data.append([datetime.datetime.fromtimestamp(row['log_time']).strftime('%Y-%m-%d %H:%M:%S'), row['networth'], row['onlinebalance']])
-        #     print(charts_data)
-        # finally:
-        #     con.close()
+        if not self.args['history_limit']:
+            query = '''
+            SELECT *
+            FROM logs
+            WHERE save_id = :save_id
+            ORDER BY log_id ASC;
+            '''
+        else:
+            query = '''
+            SELECT *
+            FROM logs
+            WHERE save_id = :save_id
+            ORDER BY log_id DESC
+            LIMIT :limit;
+            '''
+
+        r: sqlite3.Cursor = db_cur.execute(
+            query,
+            {
+                **self.sd_profile,
+                'limit': self.args['history_limit'],
+            }
+        )
+
+        dump: list[sqlite3.Row] | None = r.fetchall()
+
+        if self.args['history_limit']:
+            dump.reverse()
+
+        file: Path | None = None
+        data: str | None = None
+
+        if 'json' in self.args['export_history']:
+            file = self.data_dir.joinpath('history.json')  # TODO: cnv path to attr
+            data = json.dumps(obj=[dict(row) for row in dump], indent=4)
+            file.write_text(data)
+
+        if 'csv' in self.args['export_history']:
+            file = self.data_dir.joinpath('history.csv')  # TODO: cnv path to attr
+            with open(file=file, mode='w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([v[0] for v in db_cur.description])
+                writer.writerows(dump)
+
+
+
+
+
+
+        # charts_data: list = [
+        #     ['log_time', 'networth', 'onlinebalance'],
+        # ]
+        # for row in dump:
+        #     charts_data.append([datetime.datetime.fromtimestamp(row['log_time']).strftime('%Y-%m-%d %H:%M:%S'), row['networth'], row['onlinebalance']])
+        # print(charts_data)

@@ -28,19 +28,20 @@ def main():
     else:
         db_file = Path(sys.argv[1]).resolve()
 
-    print(f"Selected database file: {db_file}")
+    print(f"Expected database file path: {db_file}")
 
     if not db_file.exists() or not db_file.is_file():
-        print("Selected database file does not exist or is not a file\n")
-        sys.exit(1)
+        print("Database file does not exist on the expected path or is not a file\n")
+        _prompt_to_exit(1)
     else:
-        print("Selected database file found\n")
+        print("Database file found\n")
 
     if input("Are you sure this is a v1.0.0 database? [y/n]: ").strip().lower() != 'y':
-        sys.exit(0)
+        _prompt_to_exit(0)
 
     if input("Do you want to update it to next version now? [y/n]: ").strip().lower() != 'y':
-        sys.exit(0)
+        _prompt_to_exit(0)
+
 
     print("\nUpdating ...")
 
@@ -82,6 +83,7 @@ def _prompt_to_exit(exit_code: int = 0, /) -> None:
         pass
     finally:
         sys.exit(exit_code)
+
 
 
 

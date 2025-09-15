@@ -1,7 +1,7 @@
 .\hylandbook.exe ^
     "PATH_TO_SAVEGAME_FOLDER_HERE" ^
-    -e txt ^
-    -k organisation cashbalance onlinebalance networth lifetimeearnings discoveredproducts ownedvehicles rank tier elapseddays
+    --export-current txt ^
+    --export-keys organisation cashbalance onlinebalance networth lifetimeearnings ownedbusinesses ownedproperties ownedvehicles discoveredproducts rank tier elapseddays
 
 
 

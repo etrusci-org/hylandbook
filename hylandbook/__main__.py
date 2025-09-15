@@ -1,4 +1,5 @@
 import hylandbook.app
+import hylandbook.screen
 
 
 
@@ -10,3 +11,4 @@ except KeyboardInterrupt:
     pass
 except Exception as e:
     print(f"\nsomething went wrong: {e}")
+    hylandbook.screen.Screen.prompt_to_exit(10)

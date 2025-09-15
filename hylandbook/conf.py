@@ -15,15 +15,23 @@ class Conf:
     txt_export_file_name: str = 'current.txt'
 
     default_check_interval: int = 60
-    min_check_interval: int = 10
+    min_check_interval: int = 5
 
     sd_file_read_throttle: float = 0
 
-    default_export_types: list[str] = []
-    export_types_choices: list[str] = [
+    default_current_export_types: list[str] = []
+    current_export_types_choices: list[str] = [
         'json',
         'txt',
+        # 'history',
     ]
+
+    default_history_export_types: list[str] = []
+    history_export_types_choices: list[str] = [
+        'json',
+        'csv',
+    ]
+    min_history_limit: int = 1
 
     default_export_keys: list[str] = ['all']
     export_keys_choices: list[str] = [
@@ -75,15 +83,46 @@ class Conf:
                     'help': f"how frequently to check the save data for changes, in seconds, default: {default_check_interval}, minimum: {min_check_interval}",
                 },
             },
+            # {
+            #     'name_or_flags': ['-e', '--export-types'],
+            #     'setup': {
+            #         'metavar': 'TYPES',
+            #         'type': str,
+            #         'nargs': '*',
+            #         'choices': export_types_choices,
+            #         'default': default_export_types,
+            #         'help': f"types of additional export files to create each time save data changes are detected, default: no export, choices: {' '.join(export_types_choices)}",
+            #     },
+            # },
             {
-                'name_or_flags': ['-e', '--export-types'],
+                'name_or_flags': ['-c', '--export-current'],
                 'setup': {
-                    'metavar': 'TYPES',
+                    'metavar': 'TYPE',
                     'type': str,
                     'nargs': '*',
-                    'choices': export_types_choices,
-                    'default': default_export_types,
-                    'help': f"types of additional export files to create each time save data changes are detected, default: no export, choices: {' '.join(export_types_choices)}",
+                    'choices': current_export_types_choices,
+                    'default': default_current_export_types,
+                    'help': f"one or more types of current export files to create each time save data changes are detected, default: no export, choices: {' '.join(current_export_types_choices)}",
+                },
+            },
+            {
+                'name_or_flags': ['-y', '--export-history'],
+                'setup': {
+                    'metavar': 'TYPE',
+                    'type': str,
+                    'nargs': '*',
+                    'choices': history_export_types_choices,
+                    'default': default_history_export_types,
+                    'help': f"one or more types of history export files to create each time save data changes are detected, default: no export, choices: {' '.join(history_export_types_choices)}",
+                },
+            },
+            {
+                'name_or_flags': ['-m', '--history-limit'],
+                'setup': {
+                    'metavar': 'NUMBER',
+                    'type': int,
+                    'default': None,
+                    'help': f"limit the number of recent rows that are exported in history export files, default: no limit, minimum: {min_history_limit}",
                 },
             },
             {
@@ -94,7 +133,7 @@ class Conf:
                     'nargs': '*',
                     'choices': export_keys_choices,
                     'default': default_export_keys,
-                    'help': f"value keys of data to export, default: {' '.join(default_export_keys)}, choices: {' '.join(export_keys_choices)}",
+                    'help': f"value keys of data to export, does currently not apply to history exports, default: {' '.join(default_export_keys)}, choices: {' '.join(export_keys_choices)}",
                 },
             },
             {
