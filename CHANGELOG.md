@@ -41,7 +41,7 @@ Placeholer export files will now be created on the first successfull startup bef
 Previous v1.0.0 databases are not compatible, but you can update them to this version and keep your previous data.
 
 - With the updater:  
-  Save `update_v1.0.0_database_to_next.exe` in the same folder where the v1.0.0 `book.db` file is saved.  
+  Save `update_v1.0.0_database_to_next.exe` in the same folder where your previous v1.0.0 `book.db` file is saved.  
   Then run it (double-click) and follow the instructions.
 - Manually:
   ```sql

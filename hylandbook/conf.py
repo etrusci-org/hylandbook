@@ -11,11 +11,13 @@ class Conf:
 
     db_file_name: str = 'book.db'
 
-    json_export_file_name: str = 'current.json'
-    txt_export_file_name: str = 'current.txt'
+    current_json_export_file_name: str = 'current.json'
+    current_txt_export_file_name: str = 'current.txt'
+    history_json_export_file_name: str = 'history.json'
+    history_csv_export_file_name: str = 'history.csv'
 
     default_check_interval: int = 60
-    min_check_interval: int = 5
+    min_check_interval: int = 10
 
     sd_file_read_throttle: float = 0
 
@@ -23,7 +25,6 @@ class Conf:
     current_export_types_choices: list[str] = [
         'json',
         'txt',
-        # 'history',
     ]
 
     default_history_export_types: list[str] = []
@@ -33,7 +34,7 @@ class Conf:
     ]
     min_history_limit: int = 1
 
-    default_export_keys: list[str] = ['all']
+    default_export_keys: list[str] = []
     export_keys_choices: list[str] = [
         '_t',
         'save_dir',
@@ -83,17 +84,6 @@ class Conf:
                     'help': f"how frequently to check the save data for changes, in seconds, default: {default_check_interval}, minimum: {min_check_interval}",
                 },
             },
-            # {
-            #     'name_or_flags': ['-e', '--export-types'],
-            #     'setup': {
-            #         'metavar': 'TYPES',
-            #         'type': str,
-            #         'nargs': '*',
-            #         'choices': export_types_choices,
-            #         'default': default_export_types,
-            #         'help': f"types of additional export files to create each time save data changes are detected, default: no export, choices: {' '.join(export_types_choices)}",
-            #     },
-            # },
             {
                 'name_or_flags': ['-c', '--export-current'],
                 'setup': {
@@ -133,7 +123,7 @@ class Conf:
                     'nargs': '*',
                     'choices': export_keys_choices,
                     'default': default_export_keys,
-                    'help': f"value keys of data to export, does currently not apply to history exports, default: {' '.join(default_export_keys)}, choices: {' '.join(export_keys_choices)}",
+                    'help': f"value keys of data to export, does currently not apply to history exports, default: all data, choices: {' '.join(export_keys_choices)}",
                 },
             },
             {
