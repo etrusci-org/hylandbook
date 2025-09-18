@@ -241,7 +241,7 @@ class App:
                 del current['playtime']
                 del current['timeofday']
 
-                if dict(previous or {}) == current:
+                if previous == current:
                     Screen.msg("no changes detected", ts=True)
                 else:
                     Screen.msg("changes detected", ts=True)
@@ -473,8 +473,6 @@ class App:
         data: str | None = None
 
         for export_type in self.args['export_current']:
-            print('export_type', export_type)
-
             if export_type == 'json':
                 file = self.current_json_export_file
                 if len(self.args['export_keys']) == 0:
@@ -505,8 +503,6 @@ class App:
 
 
     def _export_history(self, db_cur: sqlite3.Cursor) -> None:
-        # WIP
-
         query: str
         if not self.args['history_limit']:
             query = '''
@@ -552,10 +548,3 @@ class App:
                     writer = csv.writer(f)
                     writer.writerow([v[0] for v in db_cur.description])
                     writer.writerows(dump)
-
-        # charts_data: list = [
-        #     ['log_time', 'networth', 'onlinebalance'],
-        # ]
-        # for row in dump:
-        #     charts_data.append([datetime.datetime.fromtimestamp(row['log_time']).strftime('%Y-%m-%d %H:%M:%S'), row['networth'], row['onlinebalance']])
-        # print(charts_data)

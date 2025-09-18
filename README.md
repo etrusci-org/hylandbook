@@ -217,7 +217,7 @@ Choices: `json` `txt`
 
 `-k, --export-keys [KEYS ...]`  
 Value keys of data to export.  
-Default: all  
+Default: all data
 Choices: `_t` `save_dir` `organisation` `seed` `save_id` `gameversion` `playtime` `timeofday` `elapseddays` `onlinebalance` `networth` `lifetimeearnings` `rank` `tier` `xp` `totalxp` `discoveredproducts` `ownedvehicles`
 
 `-d, --data-dir PATH`  

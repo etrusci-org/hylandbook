@@ -92,7 +92,7 @@ class Conf:
                     'nargs': '*',
                     'choices': current_export_types_choices,
                     'default': default_current_export_types,
-                    'help': f"one or more types of current export files to create each time save data changes are detected, default: no export, choices: {' '.join(current_export_types_choices)}",
+                    'help': f"one or more types of current export files to update each time save data changes are detected, default: no export, choices: {' '.join(current_export_types_choices)}",
                 },
             },
             {
@@ -103,7 +103,7 @@ class Conf:
                     'nargs': '*',
                     'choices': history_export_types_choices,
                     'default': default_history_export_types,
-                    'help': f"one or more types of history export files to create each time save data changes are detected, default: no export, choices: {' '.join(history_export_types_choices)}",
+                    'help': f"one or more types of history export files to update each time save data changes are detected, default: no export, choices: {' '.join(history_export_types_choices)}",
                 },
             },
             {
