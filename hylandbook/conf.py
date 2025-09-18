@@ -118,12 +118,12 @@ class Conf:
             {
                 'name_or_flags': ['-k', '--export-keys'],
                 'setup': {
-                    'metavar': 'KEYS',
+                    'metavar': 'KEY',
                     'type': str,
                     'nargs': '*',
                     'choices': export_keys_choices,
                     'default': default_export_keys,
-                    'help': f"value keys of data to export, does currently not apply to history exports, default: all data, choices: {' '.join(export_keys_choices)}",
+                    'help': f"value keys of data to export, does currently not apply to history exports, default: all keys, choices: {' '.join(export_keys_choices)}",
                 },
             },
             {
@@ -132,7 +132,7 @@ class Conf:
                     'metavar': 'PATH',
                     'type': str,
                     'default': default_data_dir,
-                    'help': f"path to directory where {app_name} will save data, will be created automatically if it does not exist yet, default: <current directory from where you run hylandbook>\\hb_data, current: {default_data_dir}",
+                    'help': f"path to directory where {app_name} will save data, will be created automatically if it does not exist yet, default: <current working directory>\\hb_data, current: {default_data_dir}",
                 },
             },
         ],
