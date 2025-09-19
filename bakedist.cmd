@@ -1,6 +1,6 @@
 @echo off
 
-:: bake hylandbook.exe
+:: hylandbook.exe
 
 pyinstaller ^
     --distpath "./dist" ^
@@ -8,6 +8,7 @@ pyinstaller ^
     --specpath "./.build" ^
     --icon "../app.ico" ^
     --name hylandbook ^
+    --optimize 2 ^
     --console ^
     --clean ^
     --onefile ^
@@ -20,7 +21,7 @@ certutil ^
     > "./dist/hylandbook.exe.sha256"
 
 
-:: bake update_*_database_to_next.exe
+:: update_v1.0.0_database_to_next.exe
 
 pyinstaller ^
     --distpath "./dist" ^
@@ -28,6 +29,7 @@ pyinstaller ^
     --specpath "./.build" ^
     --icon "../app.ico" ^
     --name update_v1.0.0_database_to_next ^
+    --optimize 2 ^
     --console ^
     --clean ^
     --onefile ^

@@ -30,7 +30,7 @@ Currently the following values from your save data are logged:
 
 ## Requirements
 
-I last tested this on game version `0.4.0f5`.
+Last tested on game version `0.4.0f5`.
 
 - **Schedule I** save game folder
 - **Windows OS (64-bit)** to use the [pre-built executable](./dist)
@@ -92,7 +92,7 @@ Minimum: `1`
 Example: `-m 100`
 
 `-k, --export-keys [KEY ...]`  
-Value keys of data to export.  
+Value keys of data to export. Does currently not apply to history exports.  
 Default: *all keys*  
 Choices: `_t` `save_dir` `organisation` `seed` `save_id` `gameversion` `playtime` `timeofday` `elapseddays` `cashbalance` `onlinebalance` `networth` `lifetimeearnings` `rank` `tier` `xp` `totalxp` `discoveredproducts` `ownedbusinesses` `ownedproperties` `ownedvehicles`  
 Example: `-k organisation networth lifetimeearnings`
@@ -101,6 +101,8 @@ Example: `-k organisation networth lifetimeearnings`
 Path to folder where HYLANDBOOK will save data. Will be created automatically if it does not exist yet.  
 Default: `<current working directory>\hb_data`  
 Example: `-d "C:\path to\another data folder"`
+
+
 
 
 ## Installation
@@ -157,6 +159,8 @@ Now you can just double-click `run_hylandbook.cmd` and it will launch `hylandboo
 Additionally it will export/update a text file containing some stats whenever save data changes are detected.  
 You can right-click `run_hylandbook.cmd` and choose **Create shortcut**, then move the created shortcut to your **Desktop**.  
 This way you can launch it directly from the Desktop.
+
+
 
 
 ## Run it the manual way

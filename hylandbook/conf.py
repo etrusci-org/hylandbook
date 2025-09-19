@@ -10,7 +10,6 @@ class Conf:
     default_data_dir: Path = Path.cwd() / 'hb_data'
 
     db_file_name: str = 'book.db'
-
     current_json_export_file_name: str = 'current.json'
     current_txt_export_file_name: str = 'current.txt'
     history_json_export_file_name: str = 'history.json'
@@ -60,6 +59,7 @@ class Conf:
     ]
 
     argparser: dict = {
+        # TODO: copy over the README text so it's all the same
         'init': {
             'prog': app_name,
             'description': "SAVEGAME_PATH is required, options are optional and will use their defaults if not set by you. For more help see the README.",
@@ -132,7 +132,7 @@ class Conf:
                     'metavar': 'PATH',
                     'type': str,
                     'default': default_data_dir,
-                    'help': f"path to directory where {app_name} will save data, will be created automatically if it does not exist yet, default: <current working directory>\\hb_data, current: {default_data_dir}",
+                    'help': f"path to folder where {app_name} will save data, will be created automatically if it does not exist yet, default: <current working directory>\\hb_data, current: {default_data_dir}",
                 },
             },
         ],

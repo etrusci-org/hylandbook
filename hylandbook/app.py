@@ -48,7 +48,7 @@ class App:
 
         if len(sys.argv) < 2:
             self.Argparser.help()
-            Screen.prompt_to_exit()
+            Screen.prompt_to_exit(0)
 
         self.args = self.Argparser.parse()
         self.args['check_interval'] = max(Conf.min_check_interval, self.args['check_interval'])
@@ -66,9 +66,9 @@ class App:
             Screen.prompt_to_exit(3)
             return
 
-        Screen.msg(f"save directory: {self.save_dir}", start="\n")
-        Screen.msg(f"data directory: {self.data_dir}")
-        Screen.msg(f"  organisation: {self.sd_profile['organisation']}", end="\n\n")
+        Screen.msg(f"   save folder  {self.save_dir}", start="\n")
+        Screen.msg(f"   data folder  {self.data_dir}")
+        Screen.msg(f"  organisation  {self.sd_profile['organisation']}", end="\n\n")
 
         Screen.msg("to quit at any time, type [CTRL]+[C] or close this window", end="\n\n")
 
@@ -88,27 +88,30 @@ class App:
         self.history_csv_export_file = self.data_dir.joinpath(Conf.history_csv_export_file_name)
 
         if not self.save_dir.exists() or not self.save_dir.is_dir():
-            Screen.msg(f"save_dir does not exist or is not a directory: {self.save_dir}")
+            Screen.msg(f"[BOO] SAVEGAME_PATH does not exist or is not a folder: {self.save_dir}")
             return False
 
         if not self.data_dir.exists():
             self.data_dir.mkdir()
 
             if not self.data_dir.exists():
-                Screen.msg(f"[BOO] failed to create data_dir: {self.data_dir}")
+                Screen.msg(f"[BOO] failed to create data folder: {self.data_dir}")
                 return False
 
-        if not self.current_json_export_file.exists():
-            self.current_json_export_file.write_text(data=f'{{"_t": {time.time()}, "msg": "no data logged yet"}}')
+        dummy_time: float = time.time()
+        dummy_msg: str = 'no data logged yet'
 
-        if not self.current_txt_export_file.exists():
-            self.current_txt_export_file.write_text(data=f' _t  {time.time()}\nmsg  no data logged yet')
+        if 'json' in self.args['export_current'] and not self.current_json_export_file.exists():
+            self.current_json_export_file.write_text(data=f'{{"_t": {dummy_time}, "msg": "{dummy_msg}"}}')
 
-        if not self.history_json_export_file.exists():
-            self.history_json_export_file.write_text(data=f'[{{"_t": {time.time()}, "msg": "no data logged yet"}}]')
+        if 'txt' in self.args['export_current'] and not self.current_txt_export_file.exists():
+            self.current_txt_export_file.write_text(data=f' _t  {dummy_time}\nmsg  {dummy_msg}')
 
-        if not self.history_csv_export_file.exists():
-            self.history_csv_export_file.write_text(data=f'_t,msg\n{time.time()},"no data logged yet"')
+        if 'json' in self.args['export_history'] and not self.history_json_export_file.exists():
+            self.history_json_export_file.write_text(data=f'[{{"_t": {dummy_time}, "msg": "{dummy_msg}"}}]')
+
+        if 'csv' in self.args['export_history'] and not self.history_csv_export_file.exists():
+            self.history_csv_export_file.write_text(data=f'_t,msg\n{dummy_time},"{dummy_msg}"')
 
         return True
 
@@ -257,6 +260,7 @@ class App:
                         }
                     )
                     con.commit()
+                    Screen.msg(f"updated {self.db_file.name} (save_id={self.sd_profile['save_id']} log_id={cur.lastrowid})", ts=True)
 
                     if len(self.args['export_current']) > 0:
                         self._export_current()
@@ -500,6 +504,7 @@ class App:
 
             if file and data:
                 file.write_text(data)
+                Screen.msg(f"updated {file.name}", ts=True)
 
 
     def _export_history(self, db_cur: sqlite3.Cursor) -> None:
@@ -541,6 +546,7 @@ class App:
                 file = self.history_json_export_file
                 data = json.dumps(obj=[dict(row) for row in dump])
                 file.write_text(data)
+                Screen.msg(f"updated {file.name}", ts=True)
 
             if export_type == 'csv':
                 file = self.history_csv_export_file
@@ -548,3 +554,4 @@ class App:
                     writer = csv.writer(f)
                     writer.writerow([v[0] for v in db_cur.description])
                     writer.writerows(dump)
+                    Screen.msg(f"updated {file.name}", ts=True)
