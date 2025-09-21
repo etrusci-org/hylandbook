@@ -272,6 +272,11 @@ HYLANDBOOK is licensed under [The MIT License](./LICENSE.md).
 
 
 
+
+
+
+
+
 <!-- # --== [ H Y L A N D B O O K ]==--
 
 HYLANDBOOK watches your [Schedule I](https://scheduleonegame.com) save files and logs progress to a local [SQLite](https://sqlite.org) database.  

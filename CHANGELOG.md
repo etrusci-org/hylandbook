@@ -39,10 +39,10 @@ Updated `run_hylandbook.cmd` with renamed option.
 Placeholer export files will now be created on the first successfull startup before monitoring starts. Although they will contain only dummy data, it may be useful for when you need the path in advance for a tool like OBS Studio or such.
 
 **While monitoring**  
-- Precision of displayed timestamps is not reduced anymore.
+- Reduced the precision of displayed timestamps.
 - The difference of changed numbers will now be displayed too. E.g. `3.0 -> 4.2 (1.2)`.
+- Showing which files were updated during the check.
 - The database file is not opened during the whole process anymore but only during the actual data check. May be useful if you programmatically access it with other tools while monitoring.
-- A bit more verbose output.
 
 **Update previous database to this version**  
 

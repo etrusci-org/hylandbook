@@ -206,6 +206,8 @@ class App:
 
                 Screen.msg("reading save game data ...", ts=True)
 
+                _S: float = time.time()
+
                 self.sd_cache = {}
 
                 self.sd_log['gameversion'] = self._sd('gameversion')  # do not use for comparsion
@@ -272,7 +274,7 @@ class App:
                 self._print_monitor_summary(previous=previous)
                 Screen.msg()
 
-                Screen.msg("next check in", sleep=self.args['check_interval'], ts=True)
+                Screen.msg(f"done in {time.time() - _S:.4f}s, next check in", sleep=self.args['check_interval'], ts=True)
 
             finally:
                 con.close()
