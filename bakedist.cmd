@@ -1,5 +1,6 @@
 @echo off
 
+:: --------------------------------------------------------
 :: hylandbook.exe
 
 pyinstaller ^
@@ -21,6 +22,7 @@ certutil ^
     > "./dist/hylandbook.exe.sha256"
 
 
+:: --------------------------------------------------------
 :: update_v1.0.0_database_to_next.exe
 
 pyinstaller ^
@@ -40,3 +42,10 @@ certutil ^
     SHA256 ^
     | findstr /v "hash" ^
     > "./dist/update_v1.0.0_database_to_next.exe.sha256"
+
+
+:: --------------------------------------------------------
+:: doc
+
+markdown-it ./README.md > ./dist/README.html
+markdown-it ./LICENSE.md > ./dist/LICENSE.html

@@ -1,5 +1,20 @@
 # HYLANDBOOK
 
+- [About](#about)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Run it the easy way](#run-it-the-easy-way)
+- [Run it the manual way](#run-it-the-manual-way)
+- [Where data is saved](#where-data-is-saved)
+- [Detailed usage and options](#detailed-usage-and-options)
+- [Database schema](#database-schema)
+- [License](#license)
+
+
+
+
+## About
+
 HYLANDBOOK watches your [Schedule I](https://scheduleonegame.com) save data files and logs progress to a local [SQLite](https://sqlite.org) database.  
 It can also automatically create/update export files with the *current* and *history* data - nifty for showing live stats in [OBS Studio](https://obsproject.com), for example.  
 All save data files are accessed read-only - nothing is ever modified.  
@@ -9,10 +24,10 @@ Currently the following values from your save data are logged:
 - organisation name
 - game seed
 - game version
-- playtime
+- total time played
 - time of day
 - elapsed days
-- cashbalance
+- cash balance
 - online balance
 - networth
 - lifetime earnings
@@ -20,10 +35,10 @@ Currently the following values from your save data are logged:
 - level tier
 - level xp
 - total xp over all levels
-- discovered products (count)
-- ownedbusinesses (count)
-- ownedproperties (count)
-- owned vehicles (count)
+- discovered products count
+- owned businesses count
+- owned properties count
+- owned vehicles count
 
 
 
@@ -33,17 +48,17 @@ Currently the following values from your save data are logged:
 Last tested on game version `0.4.0f5`.
 
 - **Schedule I** save game folder
-- **Windows OS (64-bit)** to use the [pre-built executable](./dist)
+- **Windows OS (64-bit)**
 
 optionally...
 
 **Users**:  
-If you want to run it directly from the [source code](./hylandbook), [Python 3](https://python.org) is needed.  
+If you want to run it directly from the source code, [Python 3](https://python.org) is needed.  
 To run it from the source code: `python3 -m hylandbook`
 
 **Developers**:  
-To install the development dependencies, run [install_pyreq.cmd](./install_pyreq.cmd).  
-To build the executable, run [bakedist.cmd](./bakedist.cmd).
+To install the development dependencies, run `install_pyreq.cmd`.  
+To build the executable, run `bakedist.cmd`.
 
 
 
@@ -64,7 +79,7 @@ For the examples below, we assume you've saved it to your `Downloads` folder.
 ## Run it the easy way
 
 To make things easier, I've included a ready-made script file. This lets you run HYLANDBOOK with a double-click, without typing commands.
-You can find it alongside the [release files](https://github.com/etrusci-org/hylandbook/releases/latest) or [there](./dist/run_hylandbook.cmd).
+You can find it alongside the [release files](https://github.com/etrusci-org/hylandbook/releases/latest).
 
 **1. Save the script**:  
 Save the file `run_hylandook.cmd` in the same folder as `hylandbook.exe`.
@@ -140,7 +155,7 @@ Usually you should find your save game folder in:
 **4. Stop it**:  
 To stop at any time, press **CTRL + C** in the command window or just close the window.
 
-**5. See all options**:  
+**See all options**:  
 To view all options and their help text run it with the `--help` option.
 
 ```txt
@@ -162,7 +177,9 @@ hylandbook.exe "C:\path to\Schedule I\SaveGame" --data-dir "C:\path to\your hyla
 
 
 
-## Command-line usage / options
+## Detailed usage and options
+
+Synopsis:
 
 ```txt
 hylandbook.exe SAVEGAME_PATH [options]
@@ -171,11 +188,13 @@ hylandbook.exe SAVEGAME_PATH [options]
 **Required**:
 
 `SAVEGAME_PATH`  
-Path to a Schedule I `SaveGame_*` directory, enclose it in quotes if it contains spaces, e.g. `"C:\path to\SaveGame_1"`.  
+Path to a Schedule I `SaveGame_*` directory, enclose it in quotes if it contains spaces.  
+Example: `"C:\path to\SaveGame_1"`
 
 **Options**:
 
-All options are optional and will use their defaults if not set by you.
+All options are optional and will use their defaults if not set by you.  
+You can either use the long or short form, e.g. `-i` and `--check-interval` are the same.
 
 `-i, --check-interval SECONDS`  
 How frequently to check the save data for changes, in seconds.  
@@ -186,13 +205,13 @@ Example: `-i 120`
 `-c, --export-current [TYPE ...]`  
 One or more types of *current* export files to update each time save data changes are detected.  
 Default: *no export*  
-Choices: `json` `txt`  
+Choices: `json` `txt` `html`  
 Example: `-c json txt`
 
 `-y, --export-history [TYPE ...]`  
 One or more types of *history* export files to update each time save data changes are detected.  
 Default: *no export*  
-Choices: `json` `csv`  
+Choices: `json` `csv` `html`  
 Example: `-y json csv`
 
 `-m, --history-limit NUMBER`  
@@ -221,9 +240,35 @@ Example: `-h`
 
 ## Database schema
 
-![visualized database schema](./doc/db_schema.png)
+Engine: SQLite3
 
-```sqlite
+```txt
+TABLE: saves                     TABLE: logs
+ ________________________           ______________________________
+/                        \         /                              \
+| save_id      [INTEGER] |----+    | log_id             [INTEGER] |
+| save_dir     [TEXT]    |    |    | log_time           [REAL]    |
+| organisation [TEXT]    |    +----| save_id            [INTEGER] |
+| seed         [INTEGER] |         | gameversion        [TEXT]    |
+\________________________/         | playtime           [INTEGER] |
+                                   | timeofday          [INTEGER] |
+                                   | elapseddays        [INTEGER] |
+                                   | cashbalance        [REAL]    |
+                                   | onlinebalance      [REAL]    |
+                                   | networth           [REAL]    |
+                                   | lifetimeearnings   [REAL]    |
+                                   | rank               [INTEGER] |
+                                   | tier               [INTEGER] |
+                                   | xp                 [INTEGER] |
+                                   | totalxp            [INTEGER] |
+                                   | discoveredproducts [INTEGER] |
+                                   | ownedbusinesses    [INTEGER] |
+                                   | ownedproperties    [INTEGER] |
+                                   | ownedvehicles      [INTEGER] |
+                                   \______________________________/
+```
+
+```txt
 CREATE TABLE 'saves' (
     'save_id' INTEGER NOT NULL,
     'save_dir' TEXT NOT NULL,
@@ -262,4 +307,11 @@ CREATE TABLE 'logs' (
 
 ## License
 
-HYLANDBOOK is licensed under [The MIT License](./LICENSE.md).
+HYLANDBOOK is licensed under **The MIT License**  
+**Copyright (c) 2025 arT2 (<https://etrusci.org>)**
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

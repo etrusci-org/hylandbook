@@ -198,6 +198,12 @@ class Conf:
 <body>
     <h1>HYLANDBOOK</h1>
 
+    <!--
+    Changes you make here will be reflected in the export file.
+    To reset this template to it's default state, delete it and
+    it will be created on the next startup.
+    -->
+
     <script>
         // { HB_DATA } (in curly braces, without the spaces) will be replaced with
         // either a dict holding the 'current' data
