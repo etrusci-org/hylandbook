@@ -30,8 +30,12 @@ class App:
     db_file: Path
     current_json_export_file: Path
     current_txt_export_file: Path
+    current_html_export_file: Path
+    current_html_template_export_file: Path
     history_json_export_file: Path
     history_csv_export_file: Path
+    history_html_export_file: Path
+    history_html_template_export_file: Path
 
     sd_profile: dict = {}
     sd_log: dict = {}
@@ -84,8 +88,12 @@ class App:
         self.db_file = self.data_dir.joinpath(Conf.db_file_name)
         self.current_json_export_file = self.data_dir.joinpath(Conf.current_json_export_file_name)
         self.current_txt_export_file = self.data_dir.joinpath(Conf.current_txt_export_file_name)
+        self.current_html_export_file = self.data_dir.joinpath(Conf.current_html_export_file_name)
+        self.current_html_template_export_file = self.data_dir.joinpath(Conf.current_html_template_export_file_name)
         self.history_json_export_file = self.data_dir.joinpath(Conf.history_json_export_file_name)
         self.history_csv_export_file = self.data_dir.joinpath(Conf.history_csv_export_file_name)
+        self.history_html_export_file = self.data_dir.joinpath(Conf.history_html_export_file_name)
+        self.history_html_template_export_file = self.data_dir.joinpath(Conf.history_html_template_export_file_name)
 
         if not self.save_dir.exists() or not self.save_dir.is_dir():
             Screen.msg(f"[BOO] SAVEGAME_PATH does not exist or is not a folder: {self.save_dir}")
@@ -107,11 +115,23 @@ class App:
         if 'txt' in self.args['export_current'] and not self.current_txt_export_file.exists():
             self.current_txt_export_file.write_text(data=f' _t  {dummy_time}\nmsg  {dummy_msg}')
 
+        if 'html' in self.args['export_current']:
+            if not self.current_html_export_file.exists():
+                self.current_html_export_file.write_text(data=f'<p>_t: {dummy_time}</p>\n</p>msg: {dummy_msg}</p>')
+            if not self.current_html_template_export_file.exists():
+                self.current_html_template_export_file.write_text(data=Conf.default_html_export_template.strip())
+
         if 'json' in self.args['export_history'] and not self.history_json_export_file.exists():
             self.history_json_export_file.write_text(data=f'[{{"_t": {dummy_time}, "msg": "{dummy_msg}"}}]')
 
         if 'csv' in self.args['export_history'] and not self.history_csv_export_file.exists():
             self.history_csv_export_file.write_text(data=f'_t,msg\n{dummy_time},"{dummy_msg}"')
+
+        if 'html' in self.args['export_history']:
+            if not self.history_html_export_file.exists():
+                self.history_html_export_file.write_text(data=f'<p>_t: {dummy_time}</p>\n</p>msg: {dummy_msg}</p>')
+            if not self.history_html_template_export_file.exists():
+                self.history_html_template_export_file.write_text(data=Conf.default_html_export_template.strip())
 
         return True
 
@@ -504,6 +524,11 @@ class App:
                     indent = max([len(k) for k in dump])
                     data = '\n'.join([f"{k:>{indent}}  {v}" for k, v in dump.items()])
 
+            if export_type == 'html':  # WIP
+                file = self.current_html_export_file
+                data = self.current_html_template_export_file.read_text()
+                data = data.replace('{HB_DATA}', json.dumps(obj=current_data))
+
             if file and data:
                 file.write_text(data)
                 Screen.msg(f"updated {file.name}", ts=True)
@@ -557,3 +582,10 @@ class App:
                     writer.writerow([v[0] for v in db_cur.description])
                     writer.writerows(dump)
                     Screen.msg(f"updated {file.name}", ts=True)
+
+            if export_type == 'html':  # WIP
+                file = self.history_html_export_file
+                data = self.history_html_template_export_file.read_text()
+                data = data.replace('{HB_DATA}', json.dumps(obj=[dict(row) for row in dump]))
+                file.write_text(data)
+                Screen.msg(f"updated {file.name}", ts=True)

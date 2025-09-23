@@ -12,8 +12,12 @@ class Conf:
     db_file_name: str = 'book.db'
     current_json_export_file_name: str = 'current.json'
     current_txt_export_file_name: str = 'current.txt'
+    current_html_export_file_name: str = 'current.html'
+    current_html_template_export_file_name: str = 'current_template.html'
     history_json_export_file_name: str = 'history.json'
     history_csv_export_file_name: str = 'history.csv'
+    history_html_export_file_name: str = 'history.html'
+    history_html_template_export_file_name: str = 'history_template.html'
 
     default_check_interval: int = 60
     min_check_interval: int = 10
@@ -24,12 +28,14 @@ class Conf:
     current_export_types_choices: list[str] = [
         'json',
         'txt',
+        'html',  # WIP
     ]
 
     default_history_export_types: list[str] = []
     history_export_types_choices: list[str] = [
         'json',
         'csv',
+        'html',  # WIP
     ]
     min_history_limit: int = 1
 
@@ -179,4 +185,34 @@ class Conf:
         );
 
         COMMIT;
+    '''
+
+    default_html_export_template: str = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYLANDBOOK</title>
+</head>
+<body>
+    <h1>HYLANDBOOK</h1>
+
+    <script>
+        // { HB_DATA } (in curly braces, without the spaces) will be replaced with
+        // either a dict holding the 'current' data
+        // or a list of dicts holding the 'history' data:
+        const hb_data = {HB_DATA}
+
+        // when done loading the page ...
+        window.addEventListener('load', () => {
+            // do something with hb_data
+            console.log(hb_data)
+
+            // reload the page/data every 60 seconds and then  ...
+            setTimeout(() => window.location.reload(), 60 * 1_000)
+        })
+    </script>
+</body>
+</html>
     '''

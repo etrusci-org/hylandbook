@@ -29,6 +29,9 @@ Limit the number of recent entries that are exported in history export files.
 Default: no limit  
 Minimum: `1`
 
+**HTML exports**
+WIP
+
 **Renamed options**  
 Renamed the *current* export option `-e, --export-types` to `-c, --export-current`.
 
