@@ -47,5 +47,4 @@ certutil ^
 :: --------------------------------------------------------
 :: doc
 
-markdown-it ./README.md > ./dist/README.html
-markdown-it ./LICENSE.md > ./dist/LICENSE.html
+python .\readme2html.py

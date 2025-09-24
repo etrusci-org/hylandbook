@@ -1,16 +1,13 @@
-<h1>HYLANDBOOK</h1>
-<ul>
-<li><a href="#about">About</a></li>
-<li><a href="#requirements">Requirements</a></li>
-<li><a href="#installation">Installation</a></li>
-<li><a href="#run-it-the-easy-way">Run it the easy way</a></li>
-<li><a href="#run-it-the-manual-way">Run it the manual way</a></li>
-<li><a href="#where-data-is-saved">Where data is saved</a></li>
-<li><a href="#detailed-usage-and-options">Detailed usage and options</a></li>
-<li><a href="#database-schema">Database schema</a></li>
-<li><a href="#license">License</a></li>
-</ul>
-<h2>About</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>body { font-family: sans-serif; padding: 0 1rem 4rem 1rem; } #readme { max-width: 900px; }</style>
+<title>HYLANDBOOK</title>
+</head>
+<body>
+<div id="readme"><h1>HYLANDBOOK</h1>
 <p>HYLANDBOOK watches your <a href="https://scheduleonegame.com">Schedule I</a> save data files and logs progress to a local <a href="https://sqlite.org">SQLite</a> database.<br />
 It can also automatically create/update export files with the <em>current</em> and <em>history</em> data - nifty for showing live stats in <a href="https://obsproject.com">OBS Studio</a>, for example.<br />
 All save data files are accessed read-only - nothing is ever modified.</p>
@@ -133,11 +130,13 @@ Minimum: <code>10</code><br />
 Example: <code>-i 120</code></p>
 <p><code>-c, --export-current [TYPE ...]</code><br />
 One or more types of <em>current</em> export files to update each time save data changes are detected.<br />
+If you choose <code>html</code>, an additional <code>current_template.html</code> file will be created which you can edit to your liking. This template will then be used to generate <code>current.html</code>.<br />
 Default: <em>no export</em><br />
 Choices: <code>json</code> <code>txt</code> <code>html</code><br />
 Example: <code>-c json txt</code></p>
 <p><code>-y, --export-history [TYPE ...]</code><br />
 One or more types of <em>history</em> export files to update each time save data changes are detected.<br />
+If you choose <code>html</code>, an additional <code>history_template.html</code> file will be created which you can edit to your liking. This template will then be used to generate <code>history.html</code>.<br />
 Default: <em>no export</em><br />
 Choices: <code>json</code> <code>csv</code> <code>html</code><br />
 Example: <code>-y json csv</code></p>
@@ -147,7 +146,7 @@ Default: <em>no limit</em><br />
 Minimum: <code>1</code><br />
 Example: <code>-m 25</code></p>
 <p><code>-k, --export-keys [KEY ...]</code><br />
-Value keys of data to export. Does currently not apply to <em>history</em> exports.<br />
+Value keys of data to export. Only applies to <em>current</em> exports.<br />
 Default: <em>export all data</em><br />
 Choices: <code>_t</code> <code>save_dir</code> <code>organisation</code> <code>seed</code> <code>save_id</code> <code>gameversion</code> <code>playtime</code> <code>timeofday</code> <code>elapseddays</code> <code>cashbalance</code> <code>onlinebalance</code> <code>networth</code> <code>lifetimeearnings</code> <code>rank</code> <code>tier</code> <code>xp</code> <code>totalxp</code> <code>discoveredproducts</code> <code>ownedbusinesses</code> <code>ownedproperties</code> <code>ownedvehicles</code><br />
 Example: <code>-k organisation rank tier networth</code></p>
@@ -160,7 +159,7 @@ Show this help.<br />
 Example: <code>-h</code></p>
 <h2>Database schema</h2>
 <p>Engine: SQLite3</p>
-<pre><code class="language-txt">TABLE: saves                     TABLE: logs
+<pre><code class="language-txt"> TABLE: saves                       TABLE: logs
  ________________________           ______________________________
 /                        \         /                              \
 | save_id      [INTEGER] |----+    | log_id             [INTEGER] |
@@ -219,6 +218,9 @@ CREATE TABLE 'logs' (
 <h2>License</h2>
 <p>HYLANDBOOK is licensed under <strong>The MIT License</strong><br />
 <strong>Copyright (c) 2025 arT2 (<a href="https://etrusci.org">https://etrusci.org</a>)</strong></p>
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+</div><!--/#readme-->
+</body>
+</html>

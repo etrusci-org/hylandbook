@@ -1,20 +1,5 @@
 # HYLANDBOOK
 
-- [About](#about)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Run it the easy way](#run-it-the-easy-way)
-- [Run it the manual way](#run-it-the-manual-way)
-- [Where data is saved](#where-data-is-saved)
-- [Detailed usage and options](#detailed-usage-and-options)
-- [Database schema](#database-schema)
-- [License](#license)
-
-
-
-
-## About
-
 HYLANDBOOK watches your [Schedule I](https://scheduleonegame.com) save data files and logs progress to a local [SQLite](https://sqlite.org) database.  
 It can also automatically create/update export files with the *current* and *history* data - nifty for showing live stats in [OBS Studio](https://obsproject.com), for example.  
 All save data files are accessed read-only - nothing is ever modified.  
@@ -204,12 +189,14 @@ Example: `-i 120`
 
 `-c, --export-current [TYPE ...]`  
 One or more types of *current* export files to update each time save data changes are detected.  
+If you choose `html`, an additional `current_template.html` file will be created which you can edit to your liking. This template will then be used to generate `current.html`.  
 Default: *no export*  
 Choices: `json` `txt` `html`  
 Example: `-c json txt`
 
 `-y, --export-history [TYPE ...]`  
 One or more types of *history* export files to update each time save data changes are detected.  
+If you choose `html`, an additional `history_template.html` file will be created which you can edit to your liking. This template will then be used to generate `history.html`.  
 Default: *no export*  
 Choices: `json` `csv` `html`  
 Example: `-y json csv`
@@ -221,7 +208,7 @@ Minimum: `1`
 Example: `-m 25`
 
 `-k, --export-keys [KEY ...]`  
-Value keys of data to export. Does currently not apply to *history* exports.  
+Value keys of data to export. Only applies to *current* exports.  
 Default: *export all data*  
 Choices: `_t` `save_dir` `organisation` `seed` `save_id` `gameversion` `playtime` `timeofday` `elapseddays` `cashbalance` `onlinebalance` `networth` `lifetimeearnings` `rank` `tier` `xp` `totalxp` `discoveredproducts` `ownedbusinesses` `ownedproperties` `ownedvehicles`  
 Example: `-k organisation rank tier networth`
@@ -243,7 +230,7 @@ Example: `-h`
 Engine: SQLite3
 
 ```txt
-TABLE: saves                     TABLE: logs
+ TABLE: saves                       TABLE: logs
  ________________________           ______________________________
 /                        \         /                              \
 | save_id      [INTEGER] |----+    | log_id             [INTEGER] |
@@ -310,7 +297,7 @@ CREATE TABLE 'logs' (
 HYLANDBOOK is licensed under **The MIT License**  
 **Copyright (c) 2025 arT2 (<https://etrusci.org>)**
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 

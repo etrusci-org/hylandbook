@@ -78,7 +78,7 @@ class Conf:
                     'metavar': 'SAVEGAME_PATH',
                     'type': str,
                     'default': None,
-                    'help': "path to a Schedule I 'SaveGame_*' directory, enclose it in quotes if it contains spaces, e.g. \"C:\\path to\\SaveGame_1\""
+                    'help': "path to a Schedule I `SaveGame_*` directory, enclose it in quotes if it contains spaces, e.g. \"C:\\path to\\SaveGame_1\""
                 },
             },
             {
@@ -129,7 +129,7 @@ class Conf:
                     'nargs': '*',
                     'choices': export_keys_choices,
                     'default': default_export_keys,
-                    'help': f"value keys of data to export, does currently not apply to history exports, default: all keys, choices: {' '.join(export_keys_choices)}",
+                    'help': f"values to export, only applies to current exports, default: all keys, choices: {' '.join(export_keys_choices)}",
                 },
             },
             {

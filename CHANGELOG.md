@@ -11,16 +11,16 @@ Further you must also edit your custom `run_hylandbook.cmd` if you were using th
 
 **New log data**  
 The following new save data values are logged:
-- cashbalance
-- ownedbusinesses (count)
-- ownedproperties (count)
+- cash balance
+- owned businesses count
+- owned properties count
 
 **History export**  
 Additionally to the *current* exports, you can now also export the *history* of your data.  
 The new options are:
 
 `-y, --export-history`  
-One or more types of history export files to update each time save data changes are detected.  
+One or more types of *history* export files to update each time save data changes are detected.  
 Default: no export  
 Choices: `json` `csv`
 
@@ -30,7 +30,14 @@ Default: no limit
 Minimum: `1`
 
 **HTML exports**
-WIP
+There is a new HTML format available for both *current* and *history* exports. It will give advanced users a simple base for creating cool overlays.
+
+For example, if you use `--export-current html`, two files will be created. One will be `current.html` and the other `current_template.html`.  
+Changes you make in `current_template.html` will be reflected in `current.html` each time save data changes are detected.  
+In `current.html`, `{HB_DATA}` will be replaced with the *current* data.  
+To reset the template to its default state, delete it and it will be created on the next startup.
+
+Same process for *history* HTML exports.
 
 **Renamed options**  
 Renamed the *current* export option `-e, --export-types` to `-c, --export-current`.
@@ -39,7 +46,7 @@ Renamed the *current* export option `-e, --export-types` to `-c, --export-curren
 Updated `run_hylandbook.cmd` with renamed option.
 
 **Export files placeholders**  
-Placeholer export files will now be created on the first successfull startup before monitoring starts. Although they will contain only dummy data, it may be useful for when you need the path in advance for a tool like OBS Studio or such.
+Placeholer export files will now be created on the first successfull startup before monitoring starts, if they are selected with with options, e.g. `-c txt`. Although they will contain only dummy data, it may be useful for when you need the path in advance for a tool like OBS Studio or such.
 
 **While monitoring**  
 - Reduced the precision of displayed timestamps.
