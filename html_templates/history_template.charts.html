@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        /* fluid:
+        div.chart {
+            position: relative;
+            width: 100vw;
+            height: 50vh;
+        }
+        */
+
+        /* static */
+        div.chart {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            width: 320px;
+            height: 320px;
+        }
+    </style>
+
+    <title>HYLANDBOOK</title>
+</head>
+<body>
+    <!--
+    COPY THIS FILE INTO YOUR hb_data FOLDER AND RENAME IT TO history_template.html
+    -->
+
+    <div class="chart">
+        <canvas id="chart1"></canvas>
+    </div>
+
+    <div class="chart">
+        <canvas id="chart2"></canvas>
+    </div>
+
+    <div class="chart">
+        <canvas id="chart3"></canvas>
+    </div>
+
+    <div class="chart">
+        <canvas id="chart4"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // { HB_DATA } (without the spaces) will be replaced with a list of dicts holding the history data:
+        // const hb_data = {HB_DATA}
+
+        // SAMPLE DATA ONLY, delete this line and un-comment the real one above with the placeholder to use it
+        const hb_data = [{"log_id": 1420, "log_time": 1758746837.6429489, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 275059, "elapseddays": 189, "onlinebalance": 454224.8125, "networth": 4978582.0, "lifetimeearnings": 3925621.25, "rank": 10, "tier": 7, "xp": 875, "totalxp": 71675, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1903, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 329741.0}, {"log_id": 1421, "log_time": 1758747918.4029653, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 277088, "elapseddays": 190, "onlinebalance": 458624.8125, "networth": 5040087.0, "lifetimeearnings": 3946655.25, "rank": 10, "tier": 7, "xp": 1035, "totalxp": 71835, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 329741.0}, {"log_id": 1422, "log_time": 1758748098.5268946, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 277496, "elapseddays": 190, "onlinebalance": 453759.8125, "networth": 5023377.0, "lifetimeearnings": 3952805.25, "rank": 10, "tier": 7, "xp": 1095, "totalxp": 71895, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1038, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 329741.0}, {"log_id": 1423, "log_time": 1758748278.657263, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 277819, "elapseddays": 190, "onlinebalance": 453759.8125, "networth": 5024914.5, "lifetimeearnings": 3963334.25, "rank": 10, "tier": 7, "xp": 1175, "totalxp": 71975, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1330, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 329741.0}, {"log_id": 1424, "log_time": 1758748758.996196, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 278715, "elapseddays": 190, "onlinebalance": 450159.8125, "networth": 5080374.5, "lifetimeearnings": 3984419.75, "rank": 10, "tier": 7, "xp": 1405, "totalxp": 72205, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 2127, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 329741.0}, {"log_id": 1425, "log_time": 1758748939.1361456, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 279058, "elapseddays": 191, "onlinebalance": 450159.8125, "networth": 5097597.0, "lifetimeearnings": 3993467.75, "rank": 10, "tier": 7, "xp": 1475, "totalxp": 72275, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 30, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 329741.0}, {"log_id": 1426, "log_time": 1758749179.303643, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 279508, "elapseddays": 191, "onlinebalance": 450159.8125, "networth": 5092949.5, "lifetimeearnings": 3997370.75, "rank": 10, "tier": 7, "xp": 1545, "totalxp": 72345, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 332828.0}, {"log_id": 1427, "log_time": 1758750260.0118494, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 281440, "elapseddays": 192, "onlinebalance": 441689.8125, "networth": 5082174.5, "lifetimeearnings": 4029385.75, "rank": 10, "tier": 7, "xp": 1895, "totalxp": 72695, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 7, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 312828.0}, {"log_id": 1428, "log_time": 1758750500.1824462, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 281954, "elapseddays": 192, "onlinebalance": 441689.8125, "networth": 5081905.0, "lifetimeearnings": 4034317.75, "rank": 10, "tier": 7, "xp": 1940, "totalxp": 72740, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 312828.0}, {"log_id": 1429, "log_time": 1758828299.6134892, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 282472, "elapseddays": 192, "onlinebalance": 461689.8125, "networth": 5081207.5, "lifetimeearnings": 4038432.75, "rank": 10, "tier": 7, "xp": 1995, "totalxp": 72795, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1138, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 312828.0}, {"log_id": 1430, "log_time": 1758829380.4705946, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 284496, "elapseddays": 193, "onlinebalance": 458089.8125, "networth": 5142612.5, "lifetimeearnings": 4072456.75, "rank": 10, "tier": 8, "xp": 45, "totalxp": 73145, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 292828.0}, {"log_id": 1431, "log_time": 1758829560.6078856, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 284737, "elapseddays": 193, "onlinebalance": 456289.8125, "networth": 5194277.5, "lifetimeearnings": 4073856.75, "rank": 10, "tier": 8, "xp": 65, "totalxp": 73165, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 909, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 292828.0}, {"log_id": 1432, "log_time": 1758829980.8999329, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 285615, "elapseddays": 193, "onlinebalance": 462869.8125, "networth": 5266100.5, "lifetimeearnings": 4099493.75, "rank": 10, "tier": 8, "xp": 305, "totalxp": 73405, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1655, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 464751.40625}, {"log_id": 1433, "log_time": 1758830341.1496074, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 286291, "elapseddays": 193, "onlinebalance": 461069.8125, "networth": 5248073.0, "lifetimeearnings": 4115529.25, "rank": 10, "tier": 8, "xp": 455, "totalxp": 73555, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 2256, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 464751.40625}, {"log_id": 1434, "log_time": 1758830821.4860404, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 287147, "elapseddays": 194, "onlinebalance": 459269.8125, "networth": 5307850.5, "lifetimeearnings": 4123767.25, "rank": 10, "tier": 8, "xp": 515, "totalxp": 73615, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 455151.40625}, {"log_id": 1435, "log_time": 1758832862.9328716, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 290909, "elapseddays": 194, "onlinebalance": 477469.8125, "networth": 5395475.5, "lifetimeearnings": 4140911.25, "rank": 10, "tier": 8, "xp": 665, "totalxp": 73765, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1349, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 455151.40625}, {"log_id": 1436, "log_time": 1758833043.0641723, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 291302, "elapseddays": 194, "onlinebalance": 477469.8125, "networth": 5400598.0, "lifetimeearnings": 4152606.25, "rank": 10, "tier": 8, "xp": 765, "totalxp": 73865, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1718, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 435151.40625}, {"log_id": 1437, "log_time": 1758833823.611605, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 292771, "elapseddays": 195, "onlinebalance": 472069.8125, "networth": 5455437.0, "lifetimeearnings": 4179862.25, "rank": 10, "tier": 8, "xp": 1000, "totalxp": 74100, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 435151.40625}, {"log_id": 1438, "log_time": 1758834123.8404293, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 293350, "elapseddays": 195, "onlinebalance": 463669.8125, "networth": 5515947.0, "lifetimeearnings": 4187642.25, "rank": 10, "tier": 8, "xp": 1090, "totalxp": 74190, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1209, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 436033.40625}, {"log_id": 1439, "log_time": 1758834303.9832048, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 293626, "elapseddays": 195, "onlinebalance": 479669.8125, "networth": 5519469.5, "lifetimeearnings": 4201780.0, "rank": 10, "tier": 8, "xp": 1220, "totalxp": 74320, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1436, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 416915.40625}, {"log_id": 1440, "log_time": 1758834484.1101909, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 293948, "elapseddays": 195, "onlinebalance": 479669.8125, "networth": 5522564.5, "lifetimeearnings": 4211360.0, "rank": 10, "tier": 8, "xp": 1360, "totalxp": 74460, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1727, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 416915.40625}, {"log_id": 1441, "log_time": 1758835024.5085177, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 294945, "elapseddays": 196, "onlinebalance": 476069.8125, "networth": 5565972.0, "lifetimeearnings": 4235290.5, "rank": 10, "tier": 8, "xp": 1560, "totalxp": 74660, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 218, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 416915.40625}, {"log_id": 1442, "log_time": 1758835384.7746785, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 295691, "elapseddays": 196, "onlinebalance": 473669.8125, "networth": 5564282.0, "lifetimeearnings": 4236106.5, "rank": 10, "tier": 8, "xp": 1570, "totalxp": 74670, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 416915.40625}, {"log_id": 1443, "log_time": 1758835504.8666213, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 295915, "elapseddays": 196, "onlinebalance": 493669.8125, "networth": 5634779.5, "lifetimeearnings": 4240216.5, "rank": 10, "tier": 8, "xp": 1600, "totalxp": 74700, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 900, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 416915.40625}, {"log_id": 1444, "log_time": 1758835985.211347, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 296759, "elapseddays": 196, "onlinebalance": 490069.8125, "networth": 5643309.5, "lifetimeearnings": 4260722.5, "rank": 10, "tier": 8, "xp": 1870, "totalxp": 74970, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1628, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 396915.40625}, {"log_id": 1445, "log_time": 1758836165.354216, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 297153, "elapseddays": 196, "onlinebalance": 500069.8125, "networth": 5672709.5, "lifetimeearnings": 4270243.5, "rank": 10, "tier": 8, "xp": 1970, "totalxp": 75070, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1959, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 502013.0}, {"log_id": 1446, "log_time": 1758836765.784321, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 298204, "elapseddays": 197, "onlinebalance": 496469.8125, "networth": 5731685.0, "lifetimeearnings": 4288658.5, "rank": 10, "tier": 8, "xp": 2115, "totalxp": 75215, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 502013.0}, {"log_id": 1447, "log_time": 1758836885.884149, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 298471, "elapseddays": 197, "onlinebalance": 487039.8125, "networth": 5724252.5, "lifetimeearnings": 4293448.5, "rank": 10, "tier": 8, "xp": 2155, "totalxp": 75255, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 923, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 502013.0}, {"log_id": 1448, "log_time": 1758837306.1842747, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 299289, "elapseddays": 197, "onlinebalance": 507039.8125, "networth": 5738099.5, "lifetimeearnings": 4316137.5, "rank": 10, "tier": 9, "xp": 45, "totalxp": 75445, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 1638, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 594160.25}, {"log_id": 1449, "log_time": 1758838086.8873672, "save_id": 2, "gameversion": "0.4.0f5", "playtime": 300751, "elapseddays": 198, "onlinebalance": 507039.8125, "networth": 5747465.0, "lifetimeearnings": 4342126.0, "rank": 10, "tier": 9, "xp": 265, "totalxp": 75665, "discoveredproducts": 81, "ownedvehicles": 3, "timeofday": 701, "ownedbusinesses": 4, "ownedproperties": 7, "cashbalance": 594160.25}]
+
+        // when done loading the page ...
+        window.addEventListener('load', () => {
+            // do something with hb_data
+            // console.log('hb_data', hb_data)
+
+            const chart1ctx = document.getElementById('chart1')
+            const chart2ctx = document.getElementById('chart2')
+            const chart3ctx = document.getElementById('chart3')
+            const chart4ctx = document.getElementById('chart4')
+
+            const labels = []
+            const networth_data = []
+            const cashbalance_data = []
+            const onlinebalance_data = []
+            const lifetimeearnings_data = []
+            const rank_data = []
+            const tier_data = []
+            const xp_data = []
+            const totalxp_data = []
+
+            for (const v of hb_data) {
+                labels.push(`${v.elapseddays}@${String(v.timeofday).slice(0, -2) + ':' + String(v.timeofday).slice(-2)}`)
+                networth_data.push(v.networth)
+                cashbalance_data.push(v.cashbalance)
+                onlinebalance_data.push(v.onlinebalance)
+                lifetimeearnings_data.push(v.lifetimeearnings)
+                rank_data.push(v.rank)
+                tier_data.push(v.tier)
+                xp_data.push(v.xp)
+                totalxp_data.push(v.totalxp)
+            }
+
+            new Chart(chart1ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'networth',
+                            data: networth_data,
+                            tension: 0,
+                            fill: false,
+                            borderColor: '#ebb803',
+                            backgroundColor: '#ebb803',
+                            pointStyle: false,
+                        },
+                        {
+                           label: 'lifetime earnings',
+                           data: lifetimeearnings_data,
+                           tension: 0,
+                           fill: false,
+                           borderColor: '#96907b',
+                           backgroundColor: '#96907b',
+                           pointStyle: false,
+                        },
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0,
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                            }
+                        }
+                    },
+                }
+            })
+
+            new Chart(chart2ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'cash balance',
+                            data: cashbalance_data,
+                            tension: 0,
+                            fill: false,
+                            borderColor: '#5be321',
+                            backgroundColor: '#5be321',
+                            pointStyle: false,
+                        },
+                        {
+                            label: 'online balance',
+                            data: onlinebalance_data,
+                            tension: 0,
+                            fill: false,
+                            borderColor: '#20bce9',
+                            backgroundColor: '#20bce9',
+                            pointStyle: false,
+                        },
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0,
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                            }
+                        }
+                    },
+                }
+            })
+
+            new Chart(chart3ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'rank',
+                            data: rank_data,
+                            tension: 0,
+                            fill: false,
+                            borderColor: '#734ae2',
+                            backgroundColor: '#734ae2',
+                            pointStyle: false,
+                        },
+                        {
+                            label: 'tier',
+                            data: tier_data,
+                            tension: 0,
+                            fill: false,
+                            borderColor: '#ad4ae2',
+                            backgroundColor: '#ad4ae2',
+                            pointStyle: false,
+                        },
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0,
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                            }
+                        }
+                    },
+                }
+            })
+
+            new Chart(chart4ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'xp',
+                            data: xp_data,
+                            tension: 0,
+                            fill: false,
+                            borderColor: '#4ae2ab',
+                            backgroundColor: '#4ae2ab',
+                            pointStyle: false,
+                        },
+                        {
+                            label: 'total xp',
+                            data: totalxp_data,
+                            tension: 0,
+                            fill: false,
+                            borderColor: '#4ae2e0',
+                            backgroundColor: '#4ae2e0',
+                            pointStyle: false,
+                        },
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0,
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        },
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                            }
+                        }
+                    },
+                }
+            })
+
+            // reload the page/data every now and then
+            setTimeout(() => window.location.reload(), 60 * 1_000)
+        })
+    </script>
+
+</body>
+</html>

@@ -1,8 +1,9 @@
 # HYLANDBOOK
 
 HYLANDBOOK watches your [Schedule I](https://scheduleonegame.com) save data files and logs progress to a local [SQLite](https://sqlite.org) database.  
-It can also automatically create/update export files with the *current* and *history* data - nifty for showing live stats in [OBS Studio](https://obsproject.com), for example.  
+It can also automatically create/update export files with the *current* and *history* data - nifty for showing live stats in [OBS Studio](https://obsproject.com) without programming knowledge, for example.  
 All save data files are accessed read-only - nothing is ever modified.  
+Note: Changes in your save data can only be detected after you save in-game.
 
 Currently the following values from your save data are logged:
 - save data directory name
@@ -24,6 +25,18 @@ Currently the following values from your save data are logged:
 - owned businesses count
 - owned properties count
 - owned vehicles count
+
+
+
+
+## Quickstart
+
+1. Download `hylandbook.exe`.
+2. Run `hylandbook.exe "C:\path to\SaveGame_1"`.
+3. Save in-game from time to time.
+4. Use the data from `book.db` or export files.
+
+For detailed help read on.
 
 
 

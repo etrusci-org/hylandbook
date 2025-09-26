@@ -12,15 +12,15 @@ HEADER: str = '''
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>body { font-family: sans-serif; padding: 0 1rem 4rem 1rem; } #readme { max-width: 900px; }</style>
+<style>body { font-family: sans-serif; padding: 0 1rem 4rem 1rem; } main { display: block; max-width: 900px; }</style>
 <title>HYLANDBOOK</title>
 </head>
 <body>
-<div id="readme">
+<main>
 '''.strip()
 
 FOOTER: str = '''
-</div><!--/#readme-->
+</main>
 </body>
 </html>
 '''.strip()
@@ -29,8 +29,22 @@ FOOTER: str = '''
 
 
 if __name__ == '__main__':
-    in_file: Path = Path().cwd() / 'README.md'
-    out_file: Path = Path().cwd() / 'dist' / 'README.html'
     md_config = commonmark.make()
     md = MarkdownIt(md_config)
-    out_file.write_text(HEADER + md.render(in_file.read_text()) + FOOTER)
+
+    cwd: Path = Path().cwd()
+
+    fmap: list[dict[str, Path]] = [
+        {
+            'in': cwd / 'README.md',
+            'out': cwd / 'dist' / 'README.html',
+        },
+        {
+            'in': cwd / 'CHANGELOG.md',
+            'out': cwd / 'dist' / 'CHANGELOG.html',
+        },
+    ]
+
+    for f in fmap:
+        print(f"{f['in']} -> {f['out']}")
+        f['out'].write_text(HEADER + md.render(f['in'].read_text()) + FOOTER)

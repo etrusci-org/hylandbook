@@ -6,7 +6,7 @@
 ## Unreleased | Work in progress
 
 **IMPORTANT**:  
-Previous v1.0.0 databases are not compatible, but you can update them to this version and keep your previous data.  
+Previous v1.0.0 databases are not compatible, but you can update them to this version and keep your previous data (see "Update previous database" below).  
 Further you must also edit your custom `run_hylandbook.cmd` if you were using the `-e, --export-types` option.
 
 **New log data**  
@@ -29,14 +29,12 @@ Limit the number of recent entries that are exported in history export files.
 Default: no limit  
 Minimum: `1`
 
-**HTML exports**
-There is a new HTML format available for both *current* and *history* exports. It will give advanced users a simple base for creating cool overlays.
-
+**HTML exports**  
+There is a new HTML format available for both *current* and *history* exports. It will give advanced users a simple base for creating cool overlays.  
 For example, if you use `--export-current html`, two files will be created. One will be `current.html` and the other `current_template.html`.  
 Changes you make in `current_template.html` will be reflected in `current.html` each time save data changes are detected.  
 In `current.html`, `{HB_DATA}` will be replaced with the *current* data.  
-To reset the template to its default state, delete it and it will be created on the next startup.
-
+To reset the template to its default state, delete it and it will be created on the next startup.  
 Same process for *history* HTML exports.
 
 **Renamed options**  
@@ -73,6 +71,6 @@ Placeholer export files will now be created on the first successfull startup bef
 ## v1.0.0 | 2025-09-07
 
 First stable release.  
-Let me know if something is unclear in the [README](./README.md) or if you encounter any bugs.  
+Let me know if something is unclear in the README or if you encounter any bugs.  
 Current state is how I use it. Your feedback/ideas are welcome.  
 Enjoy :)

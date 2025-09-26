@@ -65,7 +65,6 @@ class Conf:
     ]
 
     argparser: dict = {
-        # TODO: copy over the README text so it's all the same
         'init': {
             'prog': app_name,
             'description': "SAVEGAME_PATH is required, options are optional and will use their defaults if not set by you. For more help see the README.",
@@ -212,11 +211,13 @@ class Conf:
 
         // when done loading the page ...
         window.addEventListener('load', () => {
+
             // do something with hb_data
             console.log(hb_data)
 
-            // reload the page/data every 60 seconds and then  ...
-            setTimeout(() => window.location.reload(), 60 * 1_000)
+            // reload the page/data every 30 seconds
+            setTimeout(() => window.location.reload(), 30 * 1_000)
+
         })
     </script>
 </body>

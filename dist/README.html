@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>body { font-family: sans-serif; padding: 0 1rem 4rem 1rem; } #readme { max-width: 900px; }</style>
+<style>body { font-family: sans-serif; padding: 0 1rem 4rem 1rem; } main { display: block; max-width: 900px; }</style>
 <title>HYLANDBOOK</title>
 </head>
 <body>
-<div id="readme"><h1>HYLANDBOOK</h1>
+<main><h1>HYLANDBOOK</h1>
 <p>HYLANDBOOK watches your <a href="https://scheduleonegame.com">Schedule I</a> save data files and logs progress to a local <a href="https://sqlite.org">SQLite</a> database.<br />
-It can also automatically create/update export files with the <em>current</em> and <em>history</em> data - nifty for showing live stats in <a href="https://obsproject.com">OBS Studio</a>, for example.<br />
-All save data files are accessed read-only - nothing is ever modified.</p>
+It can also automatically create/update export files with the <em>current</em> and <em>history</em> data - nifty for showing live stats in <a href="https://obsproject.com">OBS Studio</a> without programming knowledge, for example.<br />
+All save data files are accessed read-only - nothing is ever modified.<br />
+Note: Changes in your save data can only be detected after you save in-game.</p>
 <p>Currently the following values from your save data are logged:</p>
 <ul>
 <li>save data directory name</li>
@@ -33,6 +34,14 @@ All save data files are accessed read-only - nothing is ever modified.</p>
 <li>owned properties count</li>
 <li>owned vehicles count</li>
 </ul>
+<h2>Quickstart</h2>
+<ol>
+<li>Download <code>hylandbook.exe</code>.</li>
+<li>Run <code>hylandbook.exe &quot;C:\path to\SaveGame_1&quot;</code>.</li>
+<li>Save in-game from time to time.</li>
+<li>Use the data from <code>book.db</code> or export files.</li>
+</ol>
+<p>For detailed help read on.</p>
 <h2>Requirements</h2>
 <p>Last tested on game version <code>0.4.0f5</code>.</p>
 <ul>
@@ -221,6 +230,6 @@ CREATE TABLE 'logs' (
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
-</div><!--/#readme-->
+</main>
 </body>
 </html>

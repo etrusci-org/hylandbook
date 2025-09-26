@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>body { font-family: sans-serif; padding: 0 1rem 4rem 1rem; } main { display: block; max-width: 900px; }</style>
+<title>HYLANDBOOK</title>
+</head>
+<body>
+<main><h1>HYLANDBOOK - Changelog</h1>
+<h2>Unreleased | Work in progress</h2>
+<p><strong>IMPORTANT</strong>:<br />
+Previous v1.0.0 databases are not compatible, but you can update them to this version and keep your previous data (see &quot;Update previous database&quot; below).<br />
+Further you must also edit your custom <code>run_hylandbook.cmd</code> if you were using the <code>-e, --export-types</code> option.</p>
+<p><strong>New log data</strong><br />
+The following new save data values are logged:</p>
+<ul>
+<li>cash balance</li>
+<li>owned businesses count</li>
+<li>owned properties count</li>
+</ul>
+<p><strong>History export</strong><br />
+Additionally to the <em>current</em> exports, you can now also export the <em>history</em> of your data.<br />
+The new options are:</p>
+<p><code>-y, --export-history</code><br />
+One or more types of <em>history</em> export files to update each time save data changes are detected.<br />
+Default: no export<br />
+Choices: <code>json</code> <code>csv</code></p>
+<p><code>-m, --history-limit</code><br />
+Limit the number of recent entries that are exported in history export files.<br />
+Default: no limit<br />
+Minimum: <code>1</code></p>
+<p><strong>HTML exports</strong><br />
+There is a new HTML format available for both <em>current</em> and <em>history</em> exports. It will give advanced users a simple base for creating cool overlays.<br />
+For example, if you use <code>--export-current html</code>, two files will be created. One will be <code>current.html</code> and the other <code>current_template.html</code>.<br />
+Changes you make in <code>current_template.html</code> will be reflected in <code>current.html</code> each time save data changes are detected.<br />
+In <code>current.html</code>, <code>{HB_DATA}</code> will be replaced with the <em>current</em> data.<br />
+To reset the template to its default state, delete it and it will be created on the next startup.<br />
+Same process for <em>history</em> HTML exports.</p>
+<p><strong>Renamed options</strong><br />
+Renamed the <em>current</em> export option <code>-e, --export-types</code> to <code>-c, --export-current</code>.</p>
+<p><strong>Updated starter script</strong><br />
+Updated <code>run_hylandbook.cmd</code> with renamed option.</p>
+<p><strong>Export files placeholders</strong><br />
+Placeholer export files will now be created on the first successfull startup before monitoring starts, if they are selected with with options, e.g. <code>-c txt</code>. Although they will contain only dummy data, it may be useful for when you need the path in advance for a tool like OBS Studio or such.</p>
+<p><strong>While monitoring</strong></p>
+<ul>
+<li>Reduced the precision of displayed timestamps.</li>
+<li>The difference of changed numbers will now be displayed too. E.g. <code>3.0 -&gt; 4.2 (1.2)</code>.</li>
+<li>Showing which files were updated during the check.</li>
+<li>The database file is not opened during the whole process anymore but only during the actual data check. May be useful if you programmatically access it with other tools while monitoring.</li>
+</ul>
+<p><strong>Update previous database to this version</strong></p>
+<ul>
+<li>With the updater:<br />
+Save <code>update_v1.0.0_database_to_next.exe</code> in the same folder where your previous v1.0.0 <code>book.db</code> file is saved. Then run it (double-click) and follow the instructions.</li>
+<li>Manually:<pre><code class="language-sql">&gt; sqlite3 hb_data\book.db
+ALTER TABLE logs ADD COLUMN 'cashbalance' REAL DEFAULT NULL;
+ALTER TABLE logs ADD COLUMN 'ownedbusinesses' INTEGER DEFAULT NULL;
+ALTER TABLE logs ADD COLUMN 'ownedproperties' INTEGER DEFAULT NULL;
+&gt; .exit
+</code></pre>
+</li>
+</ul>
+<h2>v1.0.0 | 2025-09-07</h2>
+<p>First stable release.<br />
+Let me know if something is unclear in the README or if you encounter any bugs.<br />
+Current state is how I use it. Your feedback/ideas are welcome.<br />
+Enjoy :)</p>
+</main>
+</body>
+</html>
