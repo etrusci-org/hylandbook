@@ -3,7 +3,9 @@
 
 
 
-## Unreleased | Work in progress
+## v2.0.0 | 2025-09-27
+
+This is rather a big update. Added what I thought was missing. Feel free to ask if anything is unclear or you need help.
 
 **IMPORTANT**:  
 Previous v1.0.0 databases are not compatible, but you can update them to this version and keep your previous data (see "Update previous database" below).  
@@ -55,7 +57,7 @@ Placeholer export files will now be created on the first successfull startup bef
 **Update previous database to this version**  
 
 - With the updater:  
-  Save `update_v1.0.0_database_to_next.exe` in the same folder where your previous v1.0.0 `book.db` file is saved. Then run it (double-click) and follow the instructions.
+  Save `update_v1.0.0_database_to_v2.0.0.exe` in the same folder where your previous v1.0.0 `book.db` file is saved. Then run it (double-click) and follow the instructions.
 - Manually:
   ```sql
   > sqlite3 hb_data\book.db
