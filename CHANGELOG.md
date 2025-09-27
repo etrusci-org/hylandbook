@@ -21,15 +21,18 @@ The following new save data values are logged:
 Additionally to the *current* exports, you can now also export the *history* of your data.  
 The new options are:
 
-`-y, --export-history`  
+`-y, --export-history [TYPE ...]`  
 One or more types of *history* export files to update each time save data changes are detected.  
-Default: no export  
-Choices: `json` `csv`
+If you choose `html`, an additional `history_template.html` file will be created which you can edit to your liking. This template will then be used to generate `history.html`.  
+Default: *no export*  
+Choices: `json` `csv` `html`  
+Example: `-y json csv`
 
-`-m, --history-limit`  
-Limit the number of recent entries that are exported in history export files.  
-Default: no limit  
-Minimum: `1`
+`-m, --history-limit NUMBER`  
+Limit the number of recent rows that are exported in *history* export files.  
+Default: *no limit*  
+Minimum: `1`  
+Example: `-m 25`
 
 **HTML exports**  
 There is a new HTML format available for both *current* and *history* exports. It will give advanced users a simple base for creating cool overlays.  
@@ -55,7 +58,6 @@ Placeholer export files will now be created on the first successfull startup bef
 - The database file is not opened during the whole process anymore but only during the actual data check. May be useful if you programmatically access it with other tools while monitoring.
 
 **Update previous database to this version**  
-
 - With the updater:  
   Save `update_v1.0.0_database_to_v2.0.0.exe` in the same folder where your previous v1.0.0 `book.db` file is saved. Then run it (double-click) and follow the instructions.
 - Manually:
