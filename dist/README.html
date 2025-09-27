@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>body { font-family: sans-serif; padding: 0 1rem 4rem 1rem; } main { display: block; max-width: 900px; }</style>
+<title>HYLANDBOOK</title>
+</head>
+<body>
+<main><h1>HYLANDBOOK</h1>
+<p>HYLANDBOOK watches your <a href="https://scheduleonegame.com">Schedule I</a> save data files and logs progress to a local <a href="https://sqlite.org">SQLite</a> database.<br />
+It can also automatically create/update export files with the <em>current</em> and <em>history</em> data - nifty for showing live stats in <a href="https://obsproject.com">OBS Studio</a> without programming knowledge, for example.<br />
+All save data files are accessed read-only - nothing is ever modified.<br />
+Note: Changes in your save data can only be detected after you save in-game.</p>
+<p>Currently the following values from your save data are logged:</p>
+<ul>
+<li>save data directory name</li>
+<li>organisation name</li>
+<li>game seed</li>
+<li>game version</li>
+<li>total time played</li>
+<li>time of day</li>
+<li>elapsed days</li>
+<li>cash balance</li>
+<li>online balance</li>
+<li>networth</li>
+<li>lifetime earnings</li>
+<li>level rank</li>
+<li>level tier</li>
+<li>level xp</li>
+<li>total xp over all levels</li>
+<li>discovered products count</li>
+<li>owned businesses count</li>
+<li>owned properties count</li>
+<li>owned vehicles count</li>
+</ul>
+<h2>Quickstart</h2>
+<ol>
+<li>Download <code>hylandbook.exe</code>.</li>
+<li>Run <code>hylandbook.exe &quot;C:\path to\SaveGame_1&quot;</code>.</li>
+<li>Save in-game from time to time.</li>
+<li>Use the data from <code>book.db</code> or export files.</li>
+</ol>
+<p>For detailed help read on.</p>
+<h2>Requirements</h2>
+<p>Last tested on game version <code>0.4.0f5</code>.</p>
+<ul>
+<li><strong>Schedule I</strong> save game folder</li>
+<li><strong>Windows OS (64-bit)</strong></li>
+</ul>
+<p>optionally...</p>
+<p><strong>Users</strong>:<br />
+If you want to run it directly from the source code, <a href="https://python.org">Python 3</a> is needed.<br />
+To run it from the source code: <code>python3 -m hylandbook</code></p>
+<p><strong>Developers</strong>:<br />
+To install the development dependencies, run <code>install_pyreq.cmd</code>.<br />
+To build the executable, run <code>bakedist.cmd</code>.</p>
+<h2>Installation</h2>
+<p><strong>1. Download the pre-built executable</strong>:<br />
+Go to the <a href="https://github.com/etrusci-org/hylandbook/releases/latest">latest release page</a> and download <code>hylandbook.exe</code>.</p>
+<p><strong>2. Put it somewhere easy to find</strong>:<br />
+Save it in a folder like <code>Documents</code> or <code>Downloads</code>.<br />
+<strong>!</strong> Don't put it in <code>Program Files</code> or other system folders - those need special permissions.<br />
+For the examples below, we assume you've saved it to your <code>Downloads</code> folder.</p>
+<h2>Run it the easy way</h2>
+<p>To make things easier, I've included a ready-made script file. This lets you run HYLANDBOOK with a double-click, without typing commands.
+You can find it alongside the <a href="https://github.com/etrusci-org/hylandbook/releases/latest">release files</a>.</p>
+<p><strong>1. Save the script</strong>:<br />
+Save the file <code>run_hylandook.cmd</code> in the same folder as <code>hylandbook.exe</code>.</p>
+<p><strong>2. Edit the save game path</strong>:<br />
+Right-click <code>run_hylandook.cmd</code> and choose <strong>Edit</strong> (this will open it in Notepad).</p>
+<p>You'll see a line like this:</p>
+<pre><code class="language-txt">&quot;PATH_TO_SAVEGAME_FOLDER_HERE&quot;
+</code></pre>
+<p>Replace <code>PATH_TO_SAVEGAME_FOLDER_HERE</code> with the actual path to your save game folder.<br />
+Then save and close the file. For example:</p>
+<p>Before:</p>
+<pre><code class="language-txt">.\hylandbook.exe ^
+    &quot;PATH_TO_SAVEGAME_FOLDER_HERE&quot; ^
+    --export-current txt ^
+    --export-keys organisation networth lifetimeearnings rank elapseddays
+</code></pre>
+<p>After:</p>
+<pre><code class="language-txt">.\hylandbook.exe ^
+    &quot;C:\Users\Alice\AppData\LocalLow\TVGS\Schedule I\Saves\12345678909876543\SaveGame_1&quot; ^
+    --export-current txt ^
+    --export-keys organisation networth lifetimeearnings rank elapseddays
+</code></pre>
+<p><strong>3. Run it</strong>:<br />
+Now you can just double-click <code>run_hylandbook.cmd</code> and it will launch <code>hylandbook.exe</code> with the save game path you've edited in.
+Additionally it will export/update a text file containing some stats whenever save data changes are detected.<br />
+You can right-click <code>run_hylandbook.cmd</code> and choose <strong>Create shortcut</strong>, then move the created shortcut to your <strong>Desktop</strong>.<br />
+This way you can launch it directly from the Desktop.</p>
+<h2>Run it the manual way</h2>
+<p><strong>1. Open a command window</strong>:<br />
+Press <strong>Windows + R</strong>, type <code>cmd</code>, and press <strong>Enter</strong>.</p>
+<p><strong>2. Go to the folder where you saved it</strong>:<br />
+In the command window, type:</p>
+<pre><code class="language-txt">cd &quot;C:\path\to\Downloads&quot;
+</code></pre>
+<p>Replace the path with the folder where you saved <code>hylandbook.exe</code>.<br />
+<strong>!</strong> If you saved it on a different drive (like <code>D:</code> or <code>E:</code>), type the drive letter first and press <strong>Enter</strong> before using <code>cd</code>. For example:</p>
+<pre><code class="language-txt">E:
+cd &quot;E:\path\to\Downloads&quot;
+</code></pre>
+<p><strong>3. Run it</strong>:<br />
+Type this and press <strong>Enter</strong>:</p>
+<pre><code class="language-txt">hylandbook.exe &quot;C:\path to\Schedule I\SaveGame&quot;
+</code></pre>
+<p>Replace the path with the location of your actual SaveGame folder.<br />
+Usually you should find your save game folder in:<br />
+<code>C:\Users\&lt;YourName&gt;\AppData\LocalLow\TVGS\Schedule I\Saves\&lt;YourSteamID&gt;</code></p>
+<p><strong>4. Stop it</strong>:<br />
+To stop at any time, press <strong>CTRL + C</strong> in the command window or just close the window.</p>
+<p><strong>See all options</strong>:<br />
+To view all options and their help text run it with the <code>--help</code> option.</p>
+<pre><code class="language-txt">hylandbook.exe --help
+</code></pre>
+<h2>Where data is saved</h2>
+<p>By default HYLANDBOOK creates a folder called <code>hb_data</code> in the folder from where you run <code>hylandbook.exe</code> (this is the &quot;current working directory&quot;).</p>
+<p>If you prefer the data to go somewhere else, use the <code>--data-dir</code> option to set a different folder:</p>
+<pre><code class="language-txt">hylandbook.exe &quot;C:\path to\Schedule I\SaveGame&quot; --data-dir &quot;C:\path to\your hylandbook data folder&quot;
+</code></pre>
+<h2>Detailed usage and options</h2>
+<p>Synopsis:</p>
+<pre><code class="language-txt">hylandbook.exe SAVEGAME_PATH [options]
+</code></pre>
+<p><strong>Required</strong>:</p>
+<p><code>SAVEGAME_PATH</code><br />
+Path to a Schedule I <code>SaveGame_*</code> directory, enclose it in quotes if it contains spaces.<br />
+Example: <code>&quot;C:\path to\SaveGame_1&quot;</code></p>
+<p><strong>Options</strong>:</p>
+<p>All options are optional and will use their defaults if not set by you.<br />
+You can either use the long or short form, e.g. <code>-i</code> and <code>--check-interval</code> are the same.</p>
+<p><code>-i, --check-interval SECONDS</code><br />
+How frequently to check the save data for changes, in seconds.<br />
+Default: <code>60</code><br />
+Minimum: <code>10</code><br />
+Example: <code>-i 120</code></p>
+<p><code>-c, --export-current [TYPE ...]</code><br />
+One or more types of <em>current</em> export files to update each time save data changes are detected.<br />
+If you choose <code>html</code>, an additional <code>current_template.html</code> file will be created which you can edit to your liking. This template will then be used to generate <code>current.html</code>.<br />
+Default: <em>no export</em><br />
+Choices: <code>json</code> <code>txt</code> <code>html</code><br />
+Example: <code>-c json txt</code></p>
+<p><code>-y, --export-history [TYPE ...]</code><br />
+One or more types of <em>history</em> export files to update each time save data changes are detected.<br />
+If you choose <code>html</code>, an additional <code>history_template.html</code> file will be created which you can edit to your liking. This template will then be used to generate <code>history.html</code>.<br />
+Default: <em>no export</em><br />
+Choices: <code>json</code> <code>csv</code> <code>html</code><br />
+Example: <code>-y json csv</code></p>
+<p><code>-m, --history-limit NUMBER</code><br />
+Limit the number of recent rows that are exported in <em>history</em> export files.<br />
+Default: <em>no limit</em><br />
+Minimum: <code>1</code><br />
+Example: <code>-m 25</code></p>
+<p><code>-k, --export-keys [KEY ...]</code><br />
+Value keys of data to export. Only applies to <em>current</em> exports.<br />
+Default: <em>export all data</em><br />
+Choices: <code>_t</code> <code>save_dir</code> <code>organisation</code> <code>seed</code> <code>save_id</code> <code>gameversion</code> <code>playtime</code> <code>timeofday</code> <code>elapseddays</code> <code>cashbalance</code> <code>onlinebalance</code> <code>networth</code> <code>lifetimeearnings</code> <code>rank</code> <code>tier</code> <code>xp</code> <code>totalxp</code> <code>discoveredproducts</code> <code>ownedbusinesses</code> <code>ownedproperties</code> <code>ownedvehicles</code><br />
+Example: <code>-k organisation rank tier networth</code></p>
+<p><code>-d, --data-dir PATH</code><br />
+Path to folder where HYLANDBOOK will save data. Will be created automatically if it does not exist yet.<br />
+Default: <code>&lt;current working directory&gt;\hb_data</code><br />
+Example: <code>-d &quot;C:\path to\another data folder&quot;</code></p>
+<p><code>-h, --help</code><br />
+Show this help.<br />
+Example: <code>-h</code></p>
+<h2>Database schema</h2>
+<p>Engine: SQLite3</p>
+<pre><code class="language-txt"> TABLE: saves                       TABLE: logs
+ ________________________           ______________________________
+/                        \         /                              \
+| save_id      [INTEGER] |----+    | log_id             [INTEGER] |
+| save_dir     [TEXT]    |    |    | log_time           [REAL]    |
+| organisation [TEXT]    |    +----| save_id            [INTEGER] |
+| seed         [INTEGER] |         | gameversion        [TEXT]    |
+\________________________/         | playtime           [INTEGER] |
+                                   | timeofday          [INTEGER] |
+                                   | elapseddays        [INTEGER] |
+                                   | cashbalance        [REAL]    |
+                                   | onlinebalance      [REAL]    |
+                                   | networth           [REAL]    |
+                                   | lifetimeearnings   [REAL]    |
+                                   | rank               [INTEGER] |
+                                   | tier               [INTEGER] |
+                                   | xp                 [INTEGER] |
+                                   | totalxp            [INTEGER] |
+                                   | discoveredproducts [INTEGER] |
+                                   | ownedbusinesses    [INTEGER] |
+                                   | ownedproperties    [INTEGER] |
+                                   | ownedvehicles      [INTEGER] |
+                                   \______________________________/
+</code></pre>
+<pre><code class="language-txt">CREATE TABLE 'saves' (
+    'save_id' INTEGER NOT NULL,
+    'save_dir' TEXT NOT NULL,
+    'organisation' TEXT NOT NULL,
+    'seed' INTEGER NOT NULL,
+    PRIMARY KEY('save_id' AUTOINCREMENT)
+);
+
+CREATE TABLE 'logs' (
+    'log_id' INTEGER NOT NULL,
+    'log_time' REAL NOT NULL,
+    'save_id' INTEGER NOT NULL,
+    'gameversion' TEXT DEFAULT NULL,
+    'playtime' INTEGER DEFAULT NULL,
+    'timeofday' INTEGER DEFAULT NULL,
+    'elapseddays' INTEGER DEFAULT NULL,
+    'cashbalance' REAL DEFAULT NULL,
+    'onlinebalance' REAL DEFAULT NULL,
+    'networth' REAL DEFAULT NULL,
+    'lifetimeearnings' REAL DEFAULT NULL,
+    'rank' INTEGER DEFAULT NULL,
+    'tier' INTEGER DEFAULT NULL,
+    'xp' INTEGER DEFAULT NULL,
+    'totalxp' INTEGER DEFAULT NULL,
+    'discoveredproducts' INTEGER DEFAULT NULL,
+    'ownedbusinesses' INTEGER DEFAULT NULL,
+    'ownedproperties' INTEGER DEFAULT NULL,
+    'ownedvehicles' INTEGER DEFAULT NULL,
+    PRIMARY KEY('log_id' AUTOINCREMENT),
+    FOREIGN KEY ('save_id') REFERENCES 'saves'('save_id')
+);
+</code></pre>
+<h2>License</h2>
+<p>HYLANDBOOK is licensed under <strong>The MIT License</strong><br />
+<strong>Copyright (c) 2025 arT2 (<a href="https://etrusci.org">https://etrusci.org</a>)</strong></p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+</main>
+</body>
+</html>

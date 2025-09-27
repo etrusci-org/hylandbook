@@ -10,19 +10,36 @@ class Conf:
     default_data_dir: Path = Path.cwd() / 'hb_data'
 
     db_file_name: str = 'book.db'
+    current_json_export_file_name: str = 'current.json'
+    current_txt_export_file_name: str = 'current.txt'
+    current_html_export_file_name: str = 'current.html'
+    current_html_template_export_file_name: str = 'current_template.html'
+    history_json_export_file_name: str = 'history.json'
+    history_csv_export_file_name: str = 'history.csv'
+    history_html_export_file_name: str = 'history.html'
+    history_html_template_export_file_name: str = 'history_template.html'
 
     default_check_interval: int = 60
     min_check_interval: int = 10
 
     sd_file_read_throttle: float = 0
 
-    default_export_types: list[str] =  []
-    export_types_choices: list[str] = [
+    default_current_export_types: list[str] = []
+    current_export_types_choices: list[str] = [
         'json',
         'txt',
+        'html',  # WIP
     ]
 
-    default_export_keys: list[str] = ['all']
+    default_history_export_types: list[str] = []
+    history_export_types_choices: list[str] = [
+        'json',
+        'csv',
+        'html',  # WIP
+    ]
+    min_history_limit: int = 1
+
+    default_export_keys: list[str] = []
     export_keys_choices: list[str] = [
         '_t',
         'save_dir',
@@ -33,6 +50,7 @@ class Conf:
         'playtime',
         'timeofday',
         'elapseddays',
+        'cashbalance',
         'onlinebalance',
         'networth',
         'lifetimeearnings',
@@ -41,6 +59,8 @@ class Conf:
         'xp',
         'totalxp',
         'discoveredproducts',
+        'ownedbusinesses',
+        'ownedproperties',
         'ownedvehicles',
     ]
 
@@ -57,7 +77,7 @@ class Conf:
                     'metavar': 'SAVEGAME_PATH',
                     'type': str,
                     'default': None,
-                    'help': "path to a Schedule I 'SaveGame_*' directory, enclose it in quotes if it contains spaces, e.g. \"C:\\path to\\SaveGame_1\""
+                    'help': "path to a Schedule I `SaveGame_*` directory, enclose it in quotes if it contains spaces, e.g. \"C:\\path to\\SaveGame_1\""
                 },
             },
             {
@@ -70,25 +90,45 @@ class Conf:
                 },
             },
             {
-                'name_or_flags': ['-e', '--export-types'],
+                'name_or_flags': ['-c', '--export-current'],
                 'setup': {
-                    'metavar': 'TYPES',
+                    'metavar': 'TYPE',
                     'type': str,
                     'nargs': '*',
-                    'choices': export_types_choices,
-                    'default': default_export_types,
-                    'help': f"types of additional export files to create each time save data changes are detected, default: no export, choices: {' '.join(export_types_choices)}",
+                    'choices': current_export_types_choices,
+                    'default': default_current_export_types,
+                    'help': f"one or more types of current export files to update each time save data changes are detected, default: no export, choices: {' '.join(current_export_types_choices)}",
+                },
+            },
+            {
+                'name_or_flags': ['-y', '--export-history'],
+                'setup': {
+                    'metavar': 'TYPE',
+                    'type': str,
+                    'nargs': '*',
+                    'choices': history_export_types_choices,
+                    'default': default_history_export_types,
+                    'help': f"one or more types of history export files to update each time save data changes are detected, default: no export, choices: {' '.join(history_export_types_choices)}",
+                },
+            },
+            {
+                'name_or_flags': ['-m', '--history-limit'],
+                'setup': {
+                    'metavar': 'NUMBER',
+                    'type': int,
+                    'default': None,
+                    'help': f"limit the number of recent rows that are exported in history export files, default: no limit, minimum: {min_history_limit}",
                 },
             },
             {
                 'name_or_flags': ['-k', '--export-keys'],
                 'setup': {
-                    'metavar': 'KEYS',
+                    'metavar': 'KEY',
                     'type': str,
                     'nargs': '*',
                     'choices': export_keys_choices,
                     'default': default_export_keys,
-                    'help': f"value keys of data to export, default: {' '.join(default_export_keys)}, choices: {' '.join(export_keys_choices)}",
+                    'help': f"values to export, only applies to current exports, default: all keys, choices: {' '.join(export_keys_choices)}",
                 },
             },
             {
@@ -97,7 +137,7 @@ class Conf:
                     'metavar': 'PATH',
                     'type': str,
                     'default': default_data_dir,
-                    'help': f"path to directory where {app_name} will save data, will be created automatically if it does not exist yet, default: <current directory from where you run hylandbook>\\hb_data, current: {default_data_dir}",
+                    'help': f"path to folder where {app_name} will save data, will be created automatically if it does not exist yet, default: <current working directory>\\hb_data, current: {default_data_dir}",
                 },
             },
         ],
@@ -126,6 +166,7 @@ class Conf:
             'playtime' INTEGER DEFAULT NULL,
             'timeofday' INTEGER DEFAULT NULL,
             'elapseddays' INTEGER DEFAULT NULL,
+            'cashbalance' REAL DEFAULT NULL,
             'onlinebalance' REAL DEFAULT NULL,
             'networth' REAL DEFAULT NULL,
             'lifetimeearnings' REAL DEFAULT NULL,
@@ -134,6 +175,8 @@ class Conf:
             'xp' INTEGER DEFAULT NULL,
             'totalxp' INTEGER DEFAULT NULL,
             'discoveredproducts' INTEGER DEFAULT NULL,
+            'ownedbusinesses' INTEGER DEFAULT NULL,
+            'ownedproperties' INTEGER DEFAULT NULL,
             'ownedvehicles' INTEGER DEFAULT NULL,
 
             PRIMARY KEY('log_id' AUTOINCREMENT),
@@ -141,4 +184,42 @@ class Conf:
         );
 
         COMMIT;
+    '''
+
+    default_html_export_template: str = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYLANDBOOK</title>
+</head>
+<body>
+    <h1>HYLANDBOOK</h1>
+
+    <!--
+    Changes you make here will be reflected in the export file.
+    To reset this template to it's default state, delete it and
+    it will be created on the next startup.
+    -->
+
+    <script>
+        // { HB_DATA } (in curly braces, without the spaces) will be replaced with
+        // either a dict holding the 'current' data
+        // or a list of dicts holding the 'history' data:
+        const hb_data = {HB_DATA}
+
+        // when done loading the page ...
+        window.addEventListener('load', () => {
+
+            // do something with hb_data
+            console.log(hb_data)
+
+            // reload the page/data every 30 seconds
+            setTimeout(() => window.location.reload(), 30 * 1_000)
+
+        })
+    </script>
+</body>
+</html>
     '''
